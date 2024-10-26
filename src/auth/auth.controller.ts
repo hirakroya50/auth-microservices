@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ApiBearerAuth,
@@ -20,6 +20,14 @@ export class AuthController {
   @Post('/')
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
     return await this.authService.generateOtp({ generateOtpDto });
+  }
+  @Get('/')
+  async getUser() {
+    return await this.authService.getAll();
+  }
+  @Delete('/')
+  async deleteUser() {
+    return await this.authService.deleteUser();
   }
 }
 
