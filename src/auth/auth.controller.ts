@@ -21,6 +21,10 @@ export class AuthController {
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
     return await this.authService.generateOtp({ generateOtpDto });
   }
+  @Get('/get-sigup-otp')
+  async getSignUpotp() {
+    return await this.authService.getSignUpOtp();
+  }
   @Get('/')
   async getUser() {
     return await this.authService.getAll();
