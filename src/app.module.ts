@@ -7,9 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailService } from './email/email.service';
+import { EmailModule } from './email/email.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule],
+  imports: [AuthModule, PrismaModule, EmailModule],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService, PrismaService, EmailService],
 })
