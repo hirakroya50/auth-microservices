@@ -8,6 +8,8 @@ import {
 } from '@nestjs/swagger';
 import { GenerateOtpDto } from './dto/genarate-otp.dto';
 import { GenerateOtpResponseDto } from './res-dto/GenerateOtpResponse.dto';
+import { SignUpDto } from './dto/signup.dto';
+import { EmailVerification_byOtpDto } from './dto/email-otp-varification.dto';
 // src/auth/dto/generate-otp-response.dto.ts
 
 @ApiTags('Draft')
@@ -17,14 +19,20 @@ export class AuthController {
   constructor(private authService: AuthService) {}
   // 1
   @ApiOkResponse({ type: GenerateOtpResponseDto })
-  @Post('/')
+  @Post('/generate-otp')
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
-    return await this.authService.generateOtp({ generateOtpDto });
+    return await this.authService.generateOtp(generateOtpDto);
   }
-  @Get('/get-sigup-otp')
-  async getSignUpotp() {
-    return await this.authService.getSignUpOtp();
+  @Post('/verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: EmailVerification_byOtpDto) {
+    return await this.authService.verifyEmailByOtp(verifyOtpDto);
   }
+
+  @Post('/sign-up')
+  async signup(@Body() signupDto: SignUpDto) {
+    return this.authService.signUp(signupDto);
+  }
+
   @Get('/')
   async getUser() {
     return await this.authService.getAll();
