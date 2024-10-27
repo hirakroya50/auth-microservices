@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,20 +11,16 @@ import { User, Prisma } from '@prisma/client';
 
 import { EmailService } from 'src/email/email.service';
 import Redis from 'ioredis';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
-  private redisClient: Redis;
-
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
-  ) {
-    this.redisClient = new Redis({
-      host: 'localhost', // Update with your Redis host
-      port: 6379, // Update with your Redis port
-    });
-  }
+    private redisService: RedisService,
+    @Inject('REDIS_CLIENT') private redisClient: Redis,
+  ) {}
 
   async generateOtp({ generateOtpDto }: { generateOtpDto: GenerateOtpDto }) {
     //check the user email is already exist or not
@@ -37,21 +34,13 @@ export class AuthService {
 
     //genarate a random otp,
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    // save this otp in the redis    // save the otp in the databse and
-    // const isSucessSaveToDatabase = await this.prisma.user.create({
-    //   data: {
-    //     email: generateOtpDto.email,
-    //     username: generateOtpDto.username,
-    //     otp,
-    //   },
-    // });
 
     // Save the OTP in Redis with a 15-minute expiration
-    const redisRes = await this.redisClient.setex(
-      generateOtpDto.email,
-      15 * 60, // for 15m
-      otp,
-    ); // 15 minutes in seconds
+    const redis = await this.redisService.saveKeyValueInRedis({
+      key: generateOtpDto.email,
+      exp_in: 15 * 60, // for 15m
+      data: otp,
+    });
 
     // send the otp (will valid for 15m )
     // const emial = await this.emailService.sendEmail({
@@ -73,21 +62,24 @@ export class AuthService {
     // that email send function will sed the work in a
     //  messegeque that will handel the email send process
     // then send the response
-    return { status: 1, otp, redisRes };
+    return { status: 1, otp, redis };
   }
 
   async getSignUpOtp() {
     try {
       const email = '1royhirakp@gmail.com';
-      const otp = await this.redisClient.get(email);
-      if (otp) {
-        // OTP found, now delete it from Redis
-        await this.redisClient.del(email);
-        return { otp };
-      }
-      return { otp: 'no otp for that' };
+      const otpFrom_redis =
+        await this.redisService.getValueByKey_withClearKey_value({
+          key: email,
+        });
+      return {
+        otpFrom_redis,
+      };
     } catch (error) {
-      return error;
+      return {
+        error,
+        msg: 'error is comig form here',
+      };
     }
   }
   //GET ALL THE USER
