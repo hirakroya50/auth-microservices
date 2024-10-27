@@ -12,7 +12,7 @@ import { User, Prisma } from '@prisma/client';
 import { EmailService } from 'src/email/email.service';
 import Redis from 'ioredis';
 import { RedisService } from 'src/redis/redis.service';
-
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
@@ -33,7 +33,9 @@ export class AuthService {
     }
 
     //genarate a random otp,
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const random_g_otp = Math.floor(100000 + Math.random() * 900000).toString();
+    //hash the otp
+    const otp = await bcrypt.hash(random_g_otp, 10);
 
     // Save the OTP in Redis with a 15-minute expiration
     const redis = await this.redisService.saveKeyValueInRedis({
@@ -68,12 +70,18 @@ export class AuthService {
   async getSignUpOtp() {
     try {
       const email = '1royhirakp@gmail.com';
+      const passwordMatched = await bcrypt.compare(
+        '513308',
+        '$2a$10$FRUzVh0Zsr0LHVd8xHaXYegmucO2uf5DX43ozMICBU68HhlcsA3Vu',
+      );
+
       const otpFrom_redis =
         await this.redisService.getValueByKey_withClearKey_value({
           key: email,
         });
       return {
         otpFrom_redis,
+        passwordMatched,
       };
     } catch (error) {
       return {
