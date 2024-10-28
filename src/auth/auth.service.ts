@@ -15,6 +15,10 @@ import { RedisService } from 'src/redis/redis.service';
 import * as bcrypt from 'bcryptjs';
 import { SignUpDto } from './dto/signup.dto';
 import { EmailVerification_byOtpDto } from './dto/email-otp-varification.dto';
+import { randomBytes } from 'crypto';
+import { EmailSendBodyDto } from './dto/email-send-body.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 @Injectable()
 export class AuthService {
   constructor(
@@ -24,13 +28,21 @@ export class AuthService {
     @Inject('REDIS_CLIENT') private redisClient: Redis,
   ) {}
 
-  // Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
-  // => save the data and create the account
+  //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
+  // done // => save the data and create the account
   // then on the next page give a option to varify the email
   // without varify the email user can login to the app .
   // but without varify the email user only and see the analiics , data and other tigs .
   // without varify the email user can get the total acces
 
+  /**
+   * Signup a new user in the system.
+   *
+   * This function takes in user sign-up data, checks if the email or username
+   * already exists, and creates a new user with a hashed password if both
+   * are unique. Returns the created user data excluding the password.
+   * @param {SignUpDto} signUpData - The sign-up data containing email, username, and password.
+   */
   async signUp(signUpData: SignUpDto) {
     const { email, password, username } = signUpData;
 
@@ -138,7 +150,7 @@ export class AuthService {
         await this.redisService.getValueByKey_withClearKey_value({
           key: email,
         });
-      const otp_verification = await bcrypt.compare(otp, otpFrom_redis.otp);
+      const otp_verification = await bcrypt.compare(otp, otpFrom_redis.data);
 
       if (otp_verification) {
         //PANDING:  update the db that the email is varified
@@ -149,6 +161,130 @@ export class AuthService {
       return {
         error,
         msg: 'error for varify the otp. process incomplete',
+      };
+    }
+  }
+
+  async verifyUserEmailByUrl({
+    email,
+    token,
+  }: {
+    email: string;
+    token: string;
+  }) {
+    try {
+      // get the saved token form redis
+      const otpFrom_redis =
+        await this.redisService.getValueByKey_withClearKey_value({
+          key: email + 'urlVerification',
+        });
+      console.log(otpFrom_redis);
+
+      // if the token has expire then allso send a html
+      if (!otpFrom_redis?.data) {
+        // apply the templates to return the html
+        // const filePath = path.join(
+        //   __dirname,
+        //   '..',
+        //   'templates',
+        //   `token-expired.html`,
+        // );
+        // console.log(filePath);
+        // return fs.readFileSync(filePath, 'utf-8');
+        return `
+          <html>
+            <body>
+              <h2>Token Expired</h2>
+              <p>The token for email verification has expired.</p>
+              <a href="yourapp://redirect">Go back to the app</a>
+            </body>
+          </html>
+        `;
+      }
+      // now just varify the token
+      // if all okk then send a html => that user has varified /
+      if (otpFrom_redis?.data === token) {
+        return `
+          <html>
+            <body>
+              <h2>Email Verified Successfully</h2>
+              <p>Your email has been verified. You can now use the app.</p>
+              <a href="yourapp://redirect">Go to the app</a>
+            </body>
+          </html>
+        `;
+      }
+
+      // if not invaild give a html that user has not varified
+
+      return `
+        <html>
+          <body>
+            <h2>Verification Failed</h2>
+            <p>The token does not match. Please try again.</p>
+            <a href="yourapp://redirect">Go back to the app</a>
+          </body>
+        </html>
+      `;
+    } catch (error) {
+      return `
+        <html>
+          <body>
+            <h2>Error</h2>
+            <p>There was an error during verification. Please try again later.</p>
+          </body>
+        </html>
+      `;
+    }
+  }
+
+  async sendEmailForUserVerificationByUrl(emailSendBodyDto: EmailSendBodyDto) {
+    try {
+      //genarate the url for dev mode / production mote => then send that in url
+
+      // genarate a random string as Toekn
+      let token = randomBytes(10).toString('hex').slice(0, 10); // Outputs a random string of length 10
+      console.log(token);
+
+      // save that in redis for 15m by key name email
+      await this.redisService.saveKeyValueInRedis({
+        key: emailSendBodyDto.email + 'urlVerification',
+        exp_in: 15 * 60, // for 15m
+        data: token,
+      });
+
+      // genarate a url
+
+      const dev_url = `http://localhost:3001/auth/verify-user?email=${emailSendBodyDto.email}&token=${token}`;
+      const prod_url = `http://www.somewebsite.com/auth/verify-user?email=${emailSendBodyDto.email}&token=${token}`;
+
+      // send the email
+      // get method (http )
+      //url:  localhost:3001/auth/otp-varification?email=emissl@hirak.com&token=sadjhasvdavs
+
+      await this.emailService.sendEmail({
+        to: emailSendBodyDto.email,
+        html: ` <body style="font-family: system-ui, math, sans-serif">
+        <div>
+          <p>Email Verification : this url is valid for 15 minutes</p>
+          <h1>DEV:</h1>
+          <p><a href="${dev_url}" style="color: blue; text-decoration: underline;">Click here to verify your email (Development)</a></p>
+          <br/>
+          <p>copy url:${dev_url} </p>
+
+          <h1>PROD:</h1>
+          <p><a href="${prod_url}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>
+        </div>
+      </body>`,
+        subject: 'User Email Verification',
+        text: 'Please verify your email address ',
+      });
+
+      return { token, email: emailSendBodyDto.email, dev_url };
+    } catch (error) {
+      return {
+        ero: 'error',
+        error,
       };
     }
   }

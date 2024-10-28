@@ -30,15 +30,15 @@ export class RedisService {
 
   async getValueByKey_withClearKey_value({ key }: { key: string }) {
     try {
-      const otp = await this.redisClient.get(key);
+      const data = await this.redisClient.get(key);
 
-      if (otp) {
+      if (data) {
         // OTP found, now delete it from Redis
         // await this.redisClient.del(key);
         return {
           status: 1,
-          message: 'OTP retrieved and deleted successfully',
-          otp,
+          message: 'data retrieved and deleted successfully',
+          data,
         };
       }
     } catch (error) {

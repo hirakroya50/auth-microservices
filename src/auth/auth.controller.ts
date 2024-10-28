@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Query,
+  Redirect,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ApiBearerAuth,
@@ -10,6 +18,7 @@ import { GenerateOtpDto } from './dto/genarate-otp.dto';
 import { GenerateOtpResponseDto } from './res-dto/GenerateOtpResponse.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { EmailVerification_byOtpDto } from './dto/email-otp-varification.dto';
+import { EmailSendBodyDto } from './dto/email-send-body.dto';
 // src/auth/dto/generate-otp-response.dto.ts
 
 @ApiTags('Draft')
@@ -33,6 +42,25 @@ export class AuthController {
     return this.authService.signUp(signupDto);
   }
 
+  @Get('/send-email-user-verification')
+  async sendEmailForUserVerificationByUrl(
+    @Body() emailSendBodyDto: EmailSendBodyDto,
+  ) {
+    return await this.authService.sendEmailForUserVerificationByUrl(
+      emailSendBodyDto,
+    );
+  }
+
+  @Get('/verify-user')
+  // @Redirect('https://url_for_thefrontnd.com')
+  async verifyUserEmailByUrl(
+    @Query('email') email: string,
+    @Query('token') token: string,
+  ) {
+    return await this.authService.verifyUserEmailByUrl({ email, token });
+    // without returning the html directy we can redirect our user in the frontend app
+    // return { url: `https://url_for_thefrontnd.com` };
+  }
   @Get('/')
   async getUser() {
     return await this.authService.getAll();
