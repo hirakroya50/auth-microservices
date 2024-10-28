@@ -14,10 +14,47 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  username String?
-  otp      String?
+  id         Int     @id @default(autoincrement())
+  email      String  @unique
+  username   String  @unique
+  password   String // Store hashed passwords
+  isVerified Boolean @default(false)
+  role       Role    @default(USER) // Enum for user roles
+  status     Status  @default(ACTIVE) // Enum for user status
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lastLogin DateTime?
+
+  // Relations
+  work Work[]
+
+  @@index([email], map: "idx_user_email") // Index for email for quick lookup
+}
+
+model Work {
+  id      Int    @id @default(autoincrement())
+  userId  Int
+  subject String
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
+  MANAGER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SENT
+  FAILED
 }
 
 model Hiteaaa {

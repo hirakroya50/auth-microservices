@@ -32,15 +32,53 @@ export class AuthService {
   // without varify the email user can get the total acces
 
   async signUp(signUpData: SignUpDto) {
-    // const { email, otp, password, username, other user details } = signUpData;
+    const { email, password, username } = signUpData;
+
     try {
+      // Check if user with the email already exists
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          OR: [{ email }, { username }],
+        },
+      });
+
+      // Log the conflict scenario. if user email and username is present in the adtabase
+      if (existingUser) {
+        if (existingUser.email === email) {
+          throw new ConflictException('Email already in use');
+        }
+        if (existingUser.username === username) {
+          throw new ConflictException('Username already in use');
+        }
+      }
+
+      // HASH
+      const hashedPassword = await bcrypt.hash(password, 10);
+      //CREATE
+      const user = await this.prisma.user.create({
+        data: {
+          email,
+          username,
+          password: hashedPassword,
+        },
+      });
+
+      // Omit the password
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
     } catch (error) {
-      return {
-        error,
-        msg: 'error for signup',
-      };
+      // Handle errors that occurred during user existence check
+      if (error?.response?.error === 'Conflict') {
+        // Handle known request errors (like unique constraints)
+        throw new ConflictException(error.response.message);
+      } else {
+        // Handle unexpected errors
+        console.error('Error creating user:', error);
+        throw new InternalServerErrorException('Failed to create user');
+      }
     }
   }
+
   async generateOtp(generateOtpDto: GenerateOtpDto) {
     //check the user email is already exist or not
     const user = await this.prisma.user.findUnique({
