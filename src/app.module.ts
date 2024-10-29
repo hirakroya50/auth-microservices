@@ -9,10 +9,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { RedisModule } from './redis/redis.module';
+import { SmsModule } from './sms/sms.module';
+import { SmsService } from './sms/sms.service';
 
 @Module({
-  imports: [AuthModule, PrismaModule, EmailModule, RedisModule],
+  imports: [AuthModule, PrismaModule, EmailModule, RedisModule, SmsModule],
   controllers: [AppController, AuthController],
-  providers: [AppService, AuthService, PrismaService, EmailService],
+  providers: [AppService, AuthService, PrismaService, EmailService, SmsService],
 })
 export class AppModule {}

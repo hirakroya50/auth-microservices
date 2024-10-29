@@ -19,12 +19,15 @@ import { randomBytes } from 'crypto';
 import { EmailSendBodyDto } from './dto/email-send-body.dto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SmsService } from 'src/sms/sms.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
     private redisService: RedisService,
+    private smsService: SmsService,
     @Inject('REDIS_CLIENT') private redisClient: Redis,
   ) {}
 
@@ -116,7 +119,15 @@ export class AuthService {
         data: otp,
       });
 
-      // send the otp (will valid for 15m )
+      //Send the otp in sms
+      const twilioo = await this.smsService.sendSms({
+        body: 'eabrrr twi ser mdule server soba baniye ',
+        to: '+919002297603',
+      });
+
+      console.log(twilioo);
+
+      // send the otp in mail (will valid for 15m )
       // await this.emailService.sendEmail({
       //   to: generateOtpDto.email,
       //   html: ` <body style="font-family: system-ui, math, sans-serif">
@@ -185,13 +196,9 @@ export class AuthService {
         await this.redisService.getValueByKey_withClearKey_value({
           key: email + 'urlVerification',
         });
-      console.log(otpFrom_redis);
 
       // if the token has expire then allso send a html
       if (!otpFrom_redis?.data) {
-        console.log(this.readHtmlTemplate('token-expired.html'));
-
-        console.log('working......1');
         // return this.readHtmlTemplate('token-expired.html');
         // apply the templates to return the html
         // const filePath = path.join(
