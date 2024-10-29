@@ -165,6 +165,13 @@ export class AuthService {
     }
   }
 
+  private readHtmlTemplate(templateName: string): string {
+    // auth-microservices/templates/token-expired.html
+    // /Users/hirakroy/Documents/GitHub/auth-microservices/src/templates/token-expired.html
+    const filePath = path.join(__dirname, '../templates', templateName);
+    return fs.readFileSync(filePath, 'utf-8');
+  }
+
   async verifyUserEmailByUrl({
     email,
     token,
@@ -182,6 +189,10 @@ export class AuthService {
 
       // if the token has expire then allso send a html
       if (!otpFrom_redis?.data) {
+        console.log(this.readHtmlTemplate('token-expired.html'));
+
+        console.log('working......1');
+        // return this.readHtmlTemplate('token-expired.html');
         // apply the templates to return the html
         // const filePath = path.join(
         //   __dirname,
