@@ -70,25 +70,38 @@ export class AuthController {
     return await this.authService.deleteUser();
   }
 }
+//
+// painding work in auth service
+/*
+1.0. impilemt otp in mobile nad 
+1. google github login 
+2. forget password logic 
+3. jwt token generation after verified login with token expire
+      -> token will be valid for 2days 
+      -> token will be saved in the redis 
+      -> on the 2rd day of token , if the user login or stay login then just auto update the jwt token that will validate for 2day
 
+4. 
+
+*/
 // auth service doc
 /*
-1, send a post(body: email or phone no , and user-name) request and genarate a otp 
-2, user will get  a otp in the email or mobile
-or , user will get  a link in the email or phone , by clicking he can set the password 
-or , user will recived a username and password in the mail and or mobile 
+1, done send a post(body: email or phone no , and user-name) request and generate a otp 
+2, done user will get  a otp in the email or mobile
+or done , user will get  a link in the email or phone , by clicking he can set the password 
+or  done, user will received a username and password in the mail and or mobile 
 (this will be validated for 15m only )
 
 or , for google / github login user will get a welcome mail in the email and or in the mobile 
 
-AFTER SETTING UP THE PASSWORD the sign up process will be complited.
+AFTER SETTING UP THE PASSWORD the sign up process will be complied.
 
 this data will be saved in sql database. 
 
 after first login/ after first google / github login ,  user will get  a popup for fill the user details , 
 (user can skip this part for later )
 
-auth token will be saved in the messege que 
+auth token will be saved in the message que 
 
 3. FORGET PASSWORD : 
  if user requst ofr foegt : user will get a email nd phn otp verifiction that 
@@ -117,7 +130,7 @@ Create policies that restrict or grant access to certain resources or actions ba
 
 4. Refresh Token Mechanism
 - refresh token system to extend user sessions without requiring them to log in frequently.
--Store refresh tokens securely in a database or in-memory store like Redis and use JWT for access tokens.
+- Store refresh tokens securely in a database or in-memory store like Redis and use JWT for access tokens.
 -Include an option for users to invalidate or revoke refresh tokens (e.g., logout from all devices).
 
 5. Rate Limiting and Brute Force Protection
