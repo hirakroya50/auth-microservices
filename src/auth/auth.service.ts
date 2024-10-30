@@ -28,7 +28,6 @@ export class AuthService {
     private emailService: EmailService,
     private redisService: RedisService,
     private smsService: SmsService,
-    @Inject('REDIS_CLIENT') private redisClient: Redis,
   ) {}
 
   //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
@@ -95,6 +94,7 @@ export class AuthService {
   }
 
   async generateOtp(generateOtpDto: GenerateOtpDto) {
+    const { email, username, mobile, countryCode } = generateOtpDto;
     //check the user email is already exist or not
     const user = await this.prisma.user.findUnique({
       where: { email: generateOtpDto.email },
@@ -121,26 +121,26 @@ export class AuthService {
 
       //Send the otp in sms
       const twilioo = await this.smsService.sendSms({
-        body: 'eabrrr twi ser mdule server soba baniye ',
-        to: '+919002297603',
+        body: `OTP for the app , your OTP :  ${random_g_otp} . this otp will valid for 15m`,
+        to: mobile,
       });
 
       console.log(twilioo);
 
       // send the otp in mail (will valid for 15m )
-      // await this.emailService.sendEmail({
-      //   to: generateOtpDto.email,
-      //   html: ` <body style="font-family: system-ui, math, sans-serif">
-      //   <div>
-      //     Hotel Booking page , OTP MAIL
-      //     <br />
-      //       <h1>YOUR OTP IS :${random_g_otp}</h1>
-      //       <h4>This otp is valid for 15m </h4>
-      //   </div>
-      // </body>`,
-      //   subject: 'Hotel Booking page , OTP MAIL',
-      //   text: 'otp send ',
-      // });
+      await this.emailService.sendEmail({
+        to: generateOtpDto.email,
+        html: ` <body style="font-family: system-ui, math, sans-serif">
+        <div>
+          Hotel Booking page , OTP MAIL
+          <br />
+            <h1>YOUR OTP IS :${random_g_otp}</h1>
+            <h4>This otp is valid for 15m </h4>
+        </div>
+      </body>`,
+        subject: 'Hotel Booking page , OTP MAIL',
+        text: 'otp send ',
+      });
 
       return { status: 1, otp, random_g_otp, msg: 'otp genaration sucessfull' };
     } catch (error) {
