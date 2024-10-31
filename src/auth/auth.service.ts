@@ -20,6 +20,7 @@ import { EmailSendBodyDto } from './dto/email-send-body.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SmsService } from 'src/sms/sms.service';
+import { SignInDto } from './dto/signIn.dto';
 
 @Injectable()
 export class AuthService {
@@ -46,13 +47,13 @@ export class AuthService {
    * @param {SignUpDto} signUpData - The sign-up data containing email, username, and password.
    */
   async signUp(signUpData: SignUpDto) {
-    const { email, password, username } = signUpData;
+    const { email, password, username, mobile } = signUpData;
 
     try {
       // Check if user with the email already exists
       const existingUser = await this.prisma.user.findFirst({
         where: {
-          OR: [{ email }, { username }],
+          OR: [{ email }, { username }, { mobile }],
         },
       });
 
@@ -73,6 +74,7 @@ export class AuthService {
         data: {
           email,
           username,
+          mobile,
           password: hashedPassword,
         },
       });
@@ -307,6 +309,31 @@ export class AuthService {
     }
   }
 
+  //SIGN-IN
+
+  async signIn(signInDto: SignInDto) {
+    const { email, mobile, password, username } = signInDto;
+    try {
+      const user_info = email ? { email } : mobile ? { mobile } : { username };
+
+      const user = await this.prisma.user.findUnique({
+        where: user_info,
+      });
+
+      if (!user) {
+        throw new ConflictException('user not exist!');
+      }
+
+      //signin logic
+      // make auth in email / username or phone no .
+      // then get varify the user then
+      //  the  generate the jwt token
+
+      return { status: 1, signInDto };
+    } catch (error) {
+      return { status: 'error' };
+    }
+  }
   //GET ALL THE USER
   async getAll() {
     try {

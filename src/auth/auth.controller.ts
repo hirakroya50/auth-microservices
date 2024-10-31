@@ -19,6 +19,7 @@ import { GenerateOtpResponseDto } from './res-dto/GenerateOtpResponse.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { EmailVerification_byOtpDto } from './dto/email-otp-varification.dto';
 import { EmailSendBodyDto } from './dto/email-send-body.dto';
+import { SignInDto } from './dto/signIn.dto';
 // src/auth/dto/generate-otp-response.dto.ts
 
 @ApiTags('Draft')
@@ -27,6 +28,15 @@ import { EmailSendBodyDto } from './dto/email-send-body.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
   // 1
+  //***************************** SingUP ********************************************************************* */
+
+  @Post('/sign-up')
+  async signup(@Body() signupDto: SignUpDto) {
+    return this.authService.signUp(signupDto);
+  }
+
+  //*****************************OTP genaration and verification ******************************************** */
+
   @ApiOkResponse({ type: GenerateOtpResponseDto })
   @Post('/generate-otp')
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
@@ -36,11 +46,7 @@ export class AuthController {
   async verifyOtp(@Body() verifyOtpDto: EmailVerification_byOtpDto) {
     return await this.authService.verifyEmailByOtp(verifyOtpDto);
   }
-
-  @Post('/sign-up')
-  async signup(@Body() signupDto: SignUpDto) {
-    return this.authService.signUp(signupDto);
-  }
+  //***************************** verification email genaration & get varified by link  ********************** */
 
   @Get('/send-email-user-verification')
   async sendEmailForUserVerificationByUrl(
@@ -52,7 +58,7 @@ export class AuthController {
   }
 
   @Get('/verify-user')
-  // @Redirect('https://url_for_thefrontnd.com')
+  // @Redirect('https://url_for_thefrontnd.com')   // redirect logic // redirect the user after varified .
   async verifyUserEmailByUrl(
     @Query('email') email: string,
     @Query('token') token: string,
@@ -61,6 +67,14 @@ export class AuthController {
     // without returning the html directy we can redirect our user in the frontend app
     // return { url: `https://url_for_thefrontnd.com` };
   }
+
+  //***************************** SignIN *************************************************************************** */
+
+  @Post('/sign-in')
+  async signIn(@Body() signInDto: SignInDto) {
+    return this.authService.signIn(signInDto);
+  }
+
   @Get('/')
   async getUser() {
     return await this.authService.getAll();
