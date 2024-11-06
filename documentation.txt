@@ -1,0 +1,41 @@
+1. used prisma orm 
+2. use redis in :  otp save in chach 
+3. nodemailer to send the email 
+4. Twilio for end tge sms to phone no 
+
+
+SIGN_UP
+
+-----------------------------
+SIGN_UP Process is easy just //sign-up(with email, username, mobile and passord )
+just call to this api that will create the account 
+-> but to access the all thing have to verify the email or phone 
+
+
+verifiction after signup 
+--------------------------------
+
+-> before that we have to genaret the otp 
+   by this "'/generate-otp'"(email, username, countrycode mobile)
+-> then by :"/verify-otp"(email, otp) we can verify the otp 
+
+
+or, 
+
+-> very by the email link 
+-> we can send the verification link in the email, 
+-> by clicking the link we can verify the email 
+
+
+
+SIGN_IN  
+
+by this   @Post('/sign-in') we can sign in (email/ username/ phone, password )
+
+
+
+
+
+
+
+

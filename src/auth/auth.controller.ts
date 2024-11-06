@@ -85,6 +85,9 @@ export class AuthController {
   }
 }
 //
+
+// -----------------PAID IMPORTANT WORK ----------
+//---------> Make the DOCUMENTATION for this app
 // painding work in auth service
 /*
 1.0. impilemt otp in mobile nad 
