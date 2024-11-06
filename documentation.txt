@@ -1,3 +1,38 @@
+
+
+can do now : 
+ Refresh Token Mechanism
+- refresh token system to extend user sessions without requiring them to log in frequently.
+- Store refresh tokens securely in a database or in-memory store like Redis and use JWT for access tokens.
+-Include an option for users to invalidate or revoke refresh tokens (e.g., logout from all devices).
+
+
+-> role-based access control like Admin, User, Moderator, etc.,
+
+
+5. Rate Limiting and Brute Force Protection
+- Add rate limiting (e.g., limit OTP requests or login ).
+- Use  @nestjs/throttler for rate-limiting.
+-Implement automatic account lockout after a certain number of failed attempts with a temporary block.
+- RATE LIMITE FOR FREE USER / AND UNLIMITED FOR PAID / OR ACCESS PERDITION AS PER THE PACKEGE : IN MONTH , WEEK , YEAR 
+
+
+6. Session Management
+- multiple user sessions from different devices, terminate active sessions. users to log out from all devices.
+
+8. Event-Driven Architecture
+- Use an event-driven architecture for better decoupling and scalability.
+- For example, use message queues (RabbitMQ, Kafka, etc.) for actions like sending OTPs, verification emails, or triggering post-login events.
+
+
+12. IP and Location Tracking for Security
+- Log the IP address and location (approximate) of every login attempt and notify users of unusual login attempts.
+- Provide users with an option to enable or disable notifications for logins from new devices or locations.
+
+
+
+//TOPIC COVER
+
 1. used prisma orm 
 2. use redis in :  otp save in chach 
 3. nodemailer to send the email 
@@ -7,16 +42,16 @@
 SIGN_UP
 
 -----------------------------
-SIGN_UP Process is easy just //sign-up(with email, username, mobile and passord )
+SIGN_UP Process is easy just //sign-up(with email, username, mobile and password )
 just call to this api that will create the account 
 -> but to access the all thing have to verify the email or phone 
 
 
-verifiction after signup 
+verification after sighup (user can skip this part for later to visit the app)
 --------------------------------
 
--> before that we have to genaret the otp 
-   by this "'/generate-otp'"(email, username, countrycode mobile)
+-> before that we have to generate the otp 
+   by this "'/generate-otp'"(email, username, country code, mobile)
 -> then by :"/verify-otp"(email, otp) we can verify the otp 
 
 
