@@ -6,6 +6,7 @@ import {
   Post,
   Query,
   Redirect,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
@@ -22,9 +23,12 @@ import { EmailSendBodyDto } from './dto/email-send-body.dto';
 import { SignInDto } from './dto/signIn.dto';
 // src/auth/dto/generate-otp-response.dto.ts
 
+import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
+
 @ApiTags('Draft')
 @ApiBearerAuth()
 @Controller('auth')
+@UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
   // 1
@@ -39,6 +43,8 @@ export class AuthController {
 
   @ApiOkResponse({ type: GenerateOtpResponseDto })
   @Post('/generate-otp')
+  // apply logic for the rate limiting type - 2 by @Throttle()
+  @Throttle({ default: { limit: 3, ttl: 60 * 1000 } })
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
     return await this.authService.generateOtp(generateOtpDto);
   }

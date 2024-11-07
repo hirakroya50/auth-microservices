@@ -11,9 +11,21 @@ import { EmailModule } from './email/email.module';
 import { RedisModule } from './redis/redis.module';
 import { SmsModule } from './sms/sms.module';
 import { SmsService } from './sms/sms.service';
-
+import { ThrottlerModule } from '@nestjs/throttler';
 @Module({
-  imports: [AuthModule, PrismaModule, EmailModule, RedisModule, SmsModule],
+  imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60 * 1000, // Time-to-live in seconds
+        limit: 10, // Maximum number of requests within the ttl period
+      },
+    ]),
+    AuthModule,
+    PrismaModule,
+    EmailModule,
+    RedisModule,
+    SmsModule,
+  ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService, PrismaService, EmailService, SmsService],
 })

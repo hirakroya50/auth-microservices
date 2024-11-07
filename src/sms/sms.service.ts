@@ -1,6 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as Twilio from 'twilio';
 
+interface RateLimitParams {
+  phoneNumber: string;
+  Time_Range_For_rate_limiting: number;
+  No_of_requests: number;
+}
+
+interface SmsParams {
+  to: string;
+  body: string;
+}
 @Injectable()
 export class SmsService {
   private twilioClient: Twilio.Twilio;
@@ -19,11 +29,12 @@ export class SmsService {
    for that we can use redis to temp store the data ,
   */
 
-  private isRateLimited(phoneNumber: string): boolean {
+  private isRateLimited(pop: RateLimitParams): boolean {
+    const { Time_Range_For_rate_limiting, No_of_requests, phoneNumber } = pop;
     const allRequestTimes = this.otpRequestLog.get(phoneNumber) || [];
     const now = Date.now();
-    const Time_Range_For_rate_limiting = 6 * 1000; // 6 seconds
-    const No_of_requests = 3;
+    // const Time_Range_For_rate_limiting = 6 * 1000; // 6 seconds
+    // const No_of_requests = 3;
 
     // Filter out timestamps outside the rate limit window
     /* this filter will find the request in the time span . 
@@ -41,8 +52,16 @@ export class SmsService {
     return recentRequests.length > No_of_requests;
   }
 
-  async sendSms({ to, body }: { to: string; body: string }) {
-    if (this.isRateLimited(to)) {
+  async sendSms(pop: SmsParams) {
+    const { to, body } = pop;
+    // apply logic for the rate limiting type    - 1
+    if (
+      this.isRateLimited({
+        No_of_requests: 3,
+        phoneNumber: to,
+        Time_Range_For_rate_limiting: 6 * 1000,
+      })
+    ) {
       throw new BadRequestException('Rate limit exceeded. Try again later.');
     }
 

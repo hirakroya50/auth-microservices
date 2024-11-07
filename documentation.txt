@@ -37,6 +37,7 @@ can do now :
 2. use redis in :  otp save in chach 
 3. nodemailer to send the email 
 4. Twilio for end tge sms to phone no 
+5. rate limit to the otp genaration
 
 
 SIGN_UP
