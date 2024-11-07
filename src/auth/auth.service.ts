@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -122,12 +123,10 @@ export class AuthService {
       });
 
       //Send the otp in sms
-      const twilioo = await this.smsService.sendSms({
+      await this.smsService.sendSms({
         body: `OTP for the app , your OTP :  ${random_g_otp} . this otp will valid for 15m`,
         to: mobile,
       });
-
-      console.log(twilioo);
 
       // send the otp in mail (will valid for 15m )
       await this.emailService.sendEmail({
@@ -150,6 +149,10 @@ export class AuthService {
       // if (error instanceof "") {
       //   throw new InternalServerErrorException('Specific error occurred');
       // }
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
       throw new InternalServerErrorException(
         'An error occurred while generating OTP',
       );

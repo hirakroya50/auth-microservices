@@ -11,7 +11,7 @@ can do now :
 
 
 5. Rate Limiting and Brute Force Protection
-- Add rate limiting (e.g., limit OTP requests or login ).
+- Add rate limiting (e.g., limit OTP requests  ).
 - Use  @nestjs/throttler for rate-limiting.
 -Implement automatic account lockout after a certain number of failed attempts with a temporary block.
 - RATE LIMITE FOR FREE USER / AND UNLIMITED FOR PAID / OR ACCESS PERDITION AS PER THE PACKEGE : IN MONTH , WEEK , YEAR 
