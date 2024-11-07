@@ -9,10 +9,11 @@ can do now :
 
 -> role-based access control like Admin, User, Moderator, etc.,
 
-
+*************************************DONE
 5. Rate Limiting and Brute Force Protection
 - Add rate limiting (e.g., limit OTP requests  ).
 - Use  @nestjs/throttler for rate-limiting.
+
 -Implement automatic account lockout after a certain number of failed attempts with a temporary block.
 - RATE LIMITE FOR FREE USER / AND UNLIMITED FOR PAID / OR ACCESS PERDITION AS PER THE PACKEGE : IN MONTH , WEEK , YEAR 
 
@@ -37,7 +38,10 @@ can do now :
 2. use redis in :  otp save in chach 
 3. nodemailer to send the email 
 4. Twilio for end tge sms to phone no 
-5. rate limit to the otp genaration
+5. rate limit to the otp genaration  -> 
+      2 types of rate limiting 
+      1. by own logic in the smsService 
+      2. by @nestjs/throttler
 
 
 SIGN_UP
@@ -51,8 +55,8 @@ just call to this api that will create the account
 verification after sighup (user can skip this part for later to visit the app)
 --------------------------------
 
--> before that we have to generate the otp 
-   by this "'/generate-otp'"(email, username, country code, mobile)
+-> before that we have to generate the otp (rate-limiting - 3 generate otp per 1 hour )
+   by this "'/generate-otp'"(email, username, country code, mobile), 
 -> then by :"/verify-otp"(email, otp) we can verify the otp 
 
 

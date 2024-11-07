@@ -55,13 +55,13 @@ export class SmsService {
   async sendSms(pop: SmsParams) {
     const { to, body } = pop;
     // apply logic for the rate limiting type    - 1
-    if (
-      this.isRateLimited({
-        No_of_requests: 3,
-        phoneNumber: to,
-        Time_Range_For_rate_limiting: 6 * 1000,
-      })
-    ) {
+    const rate_Limit_status = this.isRateLimited({
+      No_of_requests: 3,
+      phoneNumber: to,
+      Time_Range_For_rate_limiting: 6 * 1000,
+    });
+
+    if (rate_Limit_status) {
       throw new BadRequestException('Rate limit exceeded. Try again later.');
     }
 

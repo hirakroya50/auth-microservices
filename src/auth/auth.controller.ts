@@ -48,6 +48,7 @@ export class AuthController {
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
     return await this.authService.generateOtp(generateOtpDto);
   }
+
   @Post('/verify-otp')
   async verifyOtp(@Body() verifyOtpDto: EmailVerification_byOtpDto) {
     return await this.authService.verifyEmailByOtp(verifyOtpDto);
@@ -80,6 +81,8 @@ export class AuthController {
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto);
   }
+
+  //******************************************************************************************************** */
 
   @Get('/')
   async getUser() {
