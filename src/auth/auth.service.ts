@@ -1,10 +1,12 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { GenerateOtpDto } from './dto/genarate-otp.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -26,6 +28,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private readonly otpRedisKeyPrefix: string;
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
@@ -34,7 +37,9 @@ export class AuthService {
     private configService: ConfigService,
     // private KEY_FOR_REDIS: string,
   ) {
-    // this.KEY_FOR_REDIS = process.env.KEY_FOR_REDIS;
+    this.otpRedisKeyPrefix = this.configService.get<string>(
+      'KEY_FOR_SAVE_OTP_REDIS',
+    );
   }
 
   //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
@@ -103,9 +108,7 @@ export class AuthService {
 
   async generateOtp(generateOtpDto: GenerateOtpDto) {
     const { email, mobile_with_country_code } = generateOtpDto;
-    const key_for_save_otp_in_redis = this.configService.get<string>(
-      'KEY_FOR_SAVE_OTP_REDIS',
-    );
+
     //check the user email is already exist or not
     let user: User;
     if (email) {
@@ -113,12 +116,15 @@ export class AuthService {
         where: { email },
       });
     } else {
-      user = await this.prisma.user.findUnique({
-        where: { mobile: mobile_with_country_code },
-      });
+      throw new BadRequestException('email is required');
+    }
+    //check user exist or not
+    if (!user) {
+      throw new NotFoundException('user not exist');
     }
 
-    if (user.isVerified) {
+    //check user verified  or not
+    if (user?.isVerified) {
       throw new ConflictException('email already verified ');
     }
 
@@ -131,20 +137,11 @@ export class AuthService {
       const otp = await bcrypt.hash(random_g_otp, 10);
 
       // Save the OTP in Redis with a 15-minute expiration
-      let redis: Redis;
-      if (email) {
-        await this.redisService.saveKeyValueInRedis({
-          key: key_for_save_otp_in_redis + email,
-          exp_in: 15 * 60, // for 15m
-          data: otp,
-        });
-      } else {
-        await this.redisService.saveKeyValueInRedis({
-          key: key_for_save_otp_in_redis + mobile_with_country_code,
-          exp_in: 15 * 60, // for 15m
-          data: otp,
-        });
-      }
+      await this.redisService.saveKeyValueInRedis({
+        key: this.otpRedisKeyPrefix + email,
+        exp_in: 15 * 60, // for 15m
+        data: otp,
+      });
 
       //Send the otp in sms
       if (mobile_with_country_code) {
@@ -155,10 +152,9 @@ export class AuthService {
       }
 
       // send the otp in mail (will valid for 15m )
-      if (email) {
-        await this.emailService.sendEmail({
-          to: email,
-          html: ` <body style="font-family: system-ui, math, sans-serif">
+      await this.emailService.sendEmail({
+        to: email,
+        html: ` <body style="font-family: system-ui, math, sans-serif">
           <div>
             Hotel Booking page , OTP MAIL
             <br />
@@ -166,17 +162,13 @@ export class AuthService {
               <h4>This otp is valid for 15m </h4>
           </div>
         </body>`,
-          subject: 'Hotel Booking page ,OTP MAIL',
-          text: 'otp send',
-        });
-      }
+        subject: 'Hotel Booking page ,OTP MAIL',
+        text: 'otp send',
+      });
 
       return {
-        status: 1,
-        otp,
-        redis,
-        random_g_otp,
-        msg: 'otp genaration sucessfull',
+        statusCode: HttpStatus.OK,
+        message: 'OTP generated successfully',
       };
     } catch (error) {
       // Handle specific error scenarios
@@ -196,24 +188,49 @@ export class AuthService {
   async verifyEmailByOtp(verifyOtpDto: EmailVerification_byOtpDto) {
     const { email, mobile_with_country_code, otp } = verifyOtpDto;
     try {
-      console.log({ email, mobile_with_country_code, otp });
       // FROM HERE ---- 8 november 19.36pm
-      const otpFrom_redis =
-        await this.redisService.getValueByKey_withClearKey_value({
-          key: email,
-        });
+      // i have test that redis data is consol or not
+      let otpFrom_redis;
+
+      if (email) {
+        otpFrom_redis =
+          await this.redisService.getValueByKey_withClearKey_value({
+            key: this.otpRedisKeyPrefix + email,
+          });
+      } else {
+        throw new BadRequestException('Email is required for verification');
+      }
+
+      if (!otpFrom_redis) {
+        throw new NotFoundException('No OTP data found or OTP has expired');
+      }
+
       const otp_verification = await bcrypt.compare(otp, otpFrom_redis.data);
 
-      if (otp_verification) {
-        //PANDING:  update the db that the email is varified
-        return { email, otp_verification, msg: 'email verified' };
+      if (!otp_verification) {
+        throw new UnauthorizedException('Incorrect OTP');
       }
-      return { email, otp_verification, msg: 'email not verified' };
-    } catch (error) {
+      //  update the db that the email is verified
+      await this.prisma.user.update({
+        where: { email },
+        data: { isVerified: true },
+      });
+
       return {
-        error,
-        msg: 'error for varify the otp. process incomplete',
+        statusCode: HttpStatus.OK,
+        message: 'Email verified successfully',
       };
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An error occurred during OTP verification',
+      );
     }
   }
 

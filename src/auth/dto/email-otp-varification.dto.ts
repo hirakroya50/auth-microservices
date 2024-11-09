@@ -1,14 +1,12 @@
 import {
   IsEmail,
   IsNotEmpty,
-  IsOptional,
   IsPhoneNumber,
-  Validate,
   ValidateIf,
 } from 'class-validator';
 
 export class EmailVerification_byOtpDto {
-  @ValidateIf((o) => !o.mobile)
+  @ValidateIf((o) => !o.mobile_with_country_code)
   @IsEmail({}, { message: 'Invalid email format' })
   email: string;
 

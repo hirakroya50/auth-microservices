@@ -52,7 +52,6 @@ export class AuthController {
   @Post('/verify-otp')
   async verifyOtp(@Body() verifyOtpDto: EmailVerification_byOtpDto) {
     return await this.authService.verifyEmailByOtp(verifyOtpDto);
-    // return verifyOtpDto;
   }
   //***************************** verification email genaration & get varified by link  ********************** */
 
