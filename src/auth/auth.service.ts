@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SmsService } from 'src/sms/sms.service';
 import { SignInDto } from './dto/signIn.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -30,7 +31,11 @@ export class AuthService {
     private emailService: EmailService,
     private redisService: RedisService,
     private smsService: SmsService,
-  ) {}
+    private configService: ConfigService,
+    // private KEY_FOR_REDIS: string,
+  ) {
+    // this.KEY_FOR_REDIS = process.env.KEY_FOR_REDIS;
+  }
 
   //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
   // done // => save the data and create the account
@@ -97,14 +102,24 @@ export class AuthService {
   }
 
   async generateOtp(generateOtpDto: GenerateOtpDto) {
-    const { email, username, mobile, countryCode } = generateOtpDto;
+    const { email, mobile_with_country_code } = generateOtpDto;
+    const key_for_save_otp_in_redis = this.configService.get<string>(
+      'KEY_FOR_SAVE_OTP_REDIS',
+    );
     //check the user email is already exist or not
-    const user = await this.prisma.user.findUnique({
-      where: { email: generateOtpDto.email },
-    });
+    let user: User;
+    if (email) {
+      user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+    } else {
+      user = await this.prisma.user.findUnique({
+        where: { mobile: mobile_with_country_code },
+      });
+    }
 
-    if (user) {
-      throw new ConflictException('email exist');
+    if (user.isVerified) {
+      throw new ConflictException('email already verified ');
     }
 
     try {
@@ -116,34 +131,53 @@ export class AuthService {
       const otp = await bcrypt.hash(random_g_otp, 10);
 
       // Save the OTP in Redis with a 15-minute expiration
-      await this.redisService.saveKeyValueInRedis({
-        key: generateOtpDto.email,
-        exp_in: 15 * 60, // for 15m
-        data: otp,
-      });
+      let redis: Redis;
+      if (email) {
+        await this.redisService.saveKeyValueInRedis({
+          key: key_for_save_otp_in_redis + email,
+          exp_in: 15 * 60, // for 15m
+          data: otp,
+        });
+      } else {
+        await this.redisService.saveKeyValueInRedis({
+          key: key_for_save_otp_in_redis + mobile_with_country_code,
+          exp_in: 15 * 60, // for 15m
+          data: otp,
+        });
+      }
 
       //Send the otp in sms
-      await this.smsService.sendSms({
-        body: `OTP for the app , your OTP :  ${random_g_otp} . this otp will valid for 15m`,
-        to: mobile,
-      });
+      if (mobile_with_country_code) {
+        await this.smsService.sendSms({
+          body: `OTP for the app , your OTP :  ${random_g_otp} . this otp will valid for 15m`,
+          to: mobile_with_country_code,
+        });
+      }
 
       // send the otp in mail (will valid for 15m )
-      await this.emailService.sendEmail({
-        to: generateOtpDto.email,
-        html: ` <body style="font-family: system-ui, math, sans-serif">
-        <div>
-          Hotel Booking page , OTP MAIL
-          <br />
-            <h1>YOUR OTP IS :${random_g_otp}</h1>
-            <h4>This otp is valid for 15m </h4>
-        </div>
-      </body>`,
-        subject: 'Hotel Booking page , OTP MAIL',
-        text: 'otp send ',
-      });
+      if (email) {
+        await this.emailService.sendEmail({
+          to: email,
+          html: ` <body style="font-family: system-ui, math, sans-serif">
+          <div>
+            Hotel Booking page , OTP MAIL
+            <br />
+              <h1>YOUR OTP IS :${random_g_otp}</h1>
+              <h4>This otp is valid for 15m </h4>
+          </div>
+        </body>`,
+          subject: 'Hotel Booking page ,OTP MAIL',
+          text: 'otp send',
+        });
+      }
 
-      return { status: 1, otp, random_g_otp, msg: 'otp genaration sucessfull' };
+      return {
+        status: 1,
+        otp,
+        redis,
+        random_g_otp,
+        msg: 'otp genaration sucessfull',
+      };
     } catch (error) {
       // Handle specific error scenarios
       // if (error instanceof "") {
@@ -159,9 +193,11 @@ export class AuthService {
     }
   }
 
-  async verifyEmailByOtp(varifyOtpDto: EmailVerification_byOtpDto) {
-    const { email, otp } = varifyOtpDto;
+  async verifyEmailByOtp(verifyOtpDto: EmailVerification_byOtpDto) {
+    const { email, mobile_with_country_code, otp } = verifyOtpDto;
     try {
+      console.log({ email, mobile_with_country_code, otp });
+      // FROM HERE ---- 8 november 19.36pm
       const otpFrom_redis =
         await this.redisService.getValueByKey_withClearKey_value({
           key: email,

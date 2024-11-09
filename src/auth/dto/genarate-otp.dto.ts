@@ -1,20 +1,21 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsPhoneNumber,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 
 export class GenerateOtpDto {
-  @IsNotEmpty()
+  @ValidateIf((o) => !o.mobile_with_country_code)
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsString()
   email: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'Username is required' })
-  username: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Country code is required' })
-  countryCode: string;
-
-  @IsPhoneNumber(null, { message: 'Please provide a valid mobile number' })
-  @IsNotEmpty({ message: 'Mobile number is required' })
-  mobile: string;
+  @ValidateIf((o) => !o.email)
+  @IsPhoneNumber(null, {
+    message: 'Please provide a valid mobile_with_country_code ',
+  })
+  @IsNotEmpty({ message: 'mobile_with_country_code  is required' })
+  mobile_with_country_code: string;
 }

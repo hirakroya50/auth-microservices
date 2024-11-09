@@ -12,8 +12,12 @@ import { RedisModule } from './redis/redis.module';
 import { SmsModule } from './sms/sms.module';
 import { SmsService } from './sms/sms.service';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes ConfigService available globally
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60 * 1000, // Time-to-live in seconds

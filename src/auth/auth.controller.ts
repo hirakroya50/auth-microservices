@@ -44,7 +44,7 @@ export class AuthController {
   @ApiOkResponse({ type: GenerateOtpResponseDto })
   @Post('/generate-otp')
   // apply logic for the rate limiting type - 2 by @Throttle()
-  @Throttle({ default: { limit: 3, ttl: 60 * 1000 } })
+  // @Throttle({ default: { limit: 3, ttl: 60 * 1000 } })
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
     return await this.authService.generateOtp(generateOtpDto);
   }
@@ -52,6 +52,7 @@ export class AuthController {
   @Post('/verify-otp')
   async verifyOtp(@Body() verifyOtpDto: EmailVerification_byOtpDto) {
     return await this.authService.verifyEmailByOtp(verifyOtpDto);
+    // return verifyOtpDto;
   }
   //***************************** verification email genaration & get varified by link  ********************** */
 
