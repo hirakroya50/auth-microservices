@@ -332,24 +332,6 @@ export class AuthService {
     }
   }
 
-  // Helper function to validate the user credentials
-  private async validatePassword(
-    inputPassword: string,
-    storedPassword: string,
-  ): Promise<boolean> {
-    return bcrypt.compare(inputPassword, storedPassword);
-  }
-  private generateJwtToken(user: any): string {
-    const payload = { userId: user.id, email: user.email };
-    const secretKey = this.configService.get<string>('JWT_SECRET_KEY');
-    const expiration =
-      this.configService.get<string>('JWT_EXPIRATION') || '60m';
-
-    return this.jwtService.sign(payload, {
-      secret: secretKey,
-      expiresIn: expiration,
-    });
-  }
   //SIGN-IN
   async api_signIn(signInDto: SignInDto) {
     const { email, mobile, password, username } = signInDto;
@@ -425,6 +407,27 @@ export class AuthService {
       throw new ConflictException('Error occurred while deleting user');
     }
   }
+
+  //Function for --------------signIn---------
+  private async validatePassword(
+    inputPassword: string,
+    storedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(inputPassword, storedPassword);
+  }
+  private generateJwtToken(user: any): string {
+    const payload = { userId: user.id, email: user.email };
+    const secretKey = this.configService.get<string>('JWT_SECRET_KEY');
+    const expiration =
+      this.configService.get<string>('JWT_EXPIRATION') || '60m';
+
+    return this.jwtService.sign(payload, {
+      secret: secretKey,
+      expiresIn: expiration,
+    });
+  }
+  //--------------------------end---------------
+
   // functions for ------api_sendEmailForUserVerificationByUrl
   private readHtmlTemplate(templateName: string): string {
     // auth-microservices/templates/token-expired.html
