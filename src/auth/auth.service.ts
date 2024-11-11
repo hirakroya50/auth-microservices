@@ -59,6 +59,7 @@ export class AuthService {
    * are unique. Returns the created user data excluding the password.
    * @param {SignUpDto} signUpData - The sign-up data containing email, username, and password.
    */
+
   async api_signUp(signUpData: SignUpDto) {
     const { email, password, username, mobile } = signUpData;
 
@@ -70,18 +71,13 @@ export class AuthService {
         },
       });
 
-      // Log the conflict scenario. if user email and username is present in the adtabase
-      if (existingUser) {
-        if (existingUser.email === email) {
-          throw new ConflictException('Email already in use');
-        }
-        if (existingUser.username === username) {
-          throw new ConflictException('Username already in use');
-        }
-      }
+      // Handle potential conflicts with existing users
+      this.checkUserForConflicts_ForSignup(existingUser, email, username);
 
       // HASH
-      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Hash the password
+      const hashedPassword = await this.hashPassword(password);
       //CREATE
       const user = await this.prisma.user.create({
         data: {
@@ -94,17 +90,13 @@ export class AuthService {
 
       // Omit the password
       const { password: _, ...userWithoutPassword } = user;
-      return userWithoutPassword;
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'User created successfully',
+        user: userWithoutPassword,
+      };
     } catch (error) {
-      // Handle errors that occurred during user existence check
-      if (error?.response?.error === 'Conflict') {
-        // Handle known request errors (like unique constraints)
-        throw new ConflictException(error.response.message);
-      } else {
-        // Handle unexpected errors
-        console.error('Error creating user:', error);
-        throw new InternalServerErrorException('Failed to create user');
-      }
+      this.handleSignUpError(error);
     }
   }
 
@@ -265,26 +257,23 @@ export class AuthService {
       const verificationUrl = this.generateVerificationUrl(email, token);
 
       // send the email
-      // get method (http )
-      //url:  localhost:3001/auth/otp-varification?email=emissl@hirak.com&token=sadjhasvdavs
+      await this.emailService.sendEmail({
+        to: emailSendBodyDto.email,
+        html: ` <body style="font-family: system-ui, math, sans-serif">
+        <div>
+          <p>Email Verification : this url is valid for 15 minutes</p>
+          <h1>DEV:</h1>
+          <p><a href="${verificationUrl.dev}" style="color: blue; text-decoration: underline;">Click here to verify your email (Development)</a></p>
+          <br/>
+          <p>copy url:${verificationUrl.prod} </p>
 
-      // await this.emailService.sendEmail({
-      //   to: emailSendBodyDto.email,
-      //   html: ` <body style="font-family: system-ui, math, sans-serif">
-      //   <div>
-      //     <p>Email Verification : this url is valid for 15 minutes</p>
-      //     <h1>DEV:</h1>
-      //     <p><a href="${verificationUrl.dev}" style="color: blue; text-decoration: underline;">Click here to verify your email (Development)</a></p>
-      //     <br/>
-      //     <p>copy url:${verificationUrl.prod} </p>
-
-      //     <h1>PROD:</h1>
-      //     <p><a href="${verificationUrl.prod}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>
-      //   </div>
-      // </body>`,
-      //   subject: 'User Email Verification',
-      //   text: 'Please verify your email address ',
-      // });
+          <h1>PROD:</h1>
+          <p><a href="${verificationUrl.prod}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>
+        </div>
+      </body>`,
+        subject: 'User Email Verification',
+        text: 'Please verify your email address ',
+      });
 
       return {
         statusCode: HttpStatus.OK,
@@ -344,7 +333,6 @@ export class AuthService {
   }
 
   //SIGN-IN
-
   async api_signIn(signInDto: SignInDto) {
     const { email, mobile, password, username } = signInDto;
     try {
@@ -395,7 +383,7 @@ export class AuthService {
       throw new ConflictException('Error occurred while deleting user');
     }
   }
-
+  // functions for ------api_sendEmailForUserVerificationByUrl
   private readHtmlTemplate(templateName: string): string {
     // auth-microservices/templates/token-expired.html
     // /Users/hirakroy/Documents/GitHub/auth-microservices/src/templates/token-expired.html
@@ -434,4 +422,39 @@ export class AuthService {
       message: 'An error occurred while sending the verification email',
     });
   }
+
+  // functions for ----api_sendEmailForUserVerificationByUrl---- end----
+
+  // functions for sign up-----------------------
+  private checkUserForConflicts_ForSignup(
+    existingUser: User | null,
+    email: string,
+    username: string,
+  ): void {
+    if (!existingUser) return;
+
+    if (existingUser.email === email) {
+      throw new ConflictException('Email already in use');
+    }
+    if (existingUser.username === username) {
+      throw new ConflictException('Username already in use');
+    }
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    return bcrypt.hash(password, saltRounds);
+  }
+
+  private handleSignUpError(error: any): never {
+    // Handle errors that occurred during user existence check
+    if (error?.response?.error === 'Conflict') {
+      // Handle known request errors (like unique constraints)
+      throw new ConflictException(error.response.message);
+    } else {
+      // Handle unexpected errors
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+  // functions for sign up ---------end --------
 }
