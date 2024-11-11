@@ -6,9 +6,10 @@ import { EmailModule } from 'src/email/email.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { SmsService } from 'src/sms/sms.service';
 import { SmsModule } from 'src/sms/sms.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [PrismaModule, EmailModule, RedisModule, SmsModule],
+  imports: [PrismaModule, EmailModule, RedisModule, SmsModule, JwtModule],
   controllers: [AuthController],
   providers: [AuthService],
 })

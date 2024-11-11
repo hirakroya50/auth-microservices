@@ -28,6 +28,7 @@ import { ConfigService } from '@nestjs/config';
 import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 
 import * as htmlTemplates from '../utils/html-response.util';
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   private readonly otpRedisKeyPrefix: string;
@@ -37,6 +38,7 @@ export class AuthService {
     private redisService: RedisService,
     private smsService: SmsService,
     private configService: ConfigService,
+    private jwtService: JwtService,
     // private KEY_FOR_REDIS: string,
   ) {
     this.otpRedisKeyPrefix = this.configService.get<string>(
@@ -73,8 +75,6 @@ export class AuthService {
 
       // Handle potential conflicts with existing users
       this.checkUserForConflicts_ForSignup(existingUser, email, username);
-
-      // HASH
 
       // Hash the password
       const hashedPassword = await this.hashPassword(password);
@@ -332,12 +332,33 @@ export class AuthService {
     }
   }
 
+  // Helper function to validate the user credentials
+  private async validatePassword(
+    inputPassword: string,
+    storedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(inputPassword, storedPassword);
+  }
+  private generateJwtToken(user: any): string {
+    const payload = { userId: user.id, email: user.email };
+    const secretKey = this.configService.get<string>('JWT_SECRET_KEY');
+    const expiration =
+      this.configService.get<string>('JWT_EXPIRATION') || '60m';
+
+    return this.jwtService.sign(payload, {
+      secret: secretKey,
+      expiresIn: expiration,
+    });
+  }
   //SIGN-IN
   async api_signIn(signInDto: SignInDto) {
     const { email, mobile, password, username } = signInDto;
-    try {
-      const user_info = email ? { email } : mobile ? { mobile } : { username };
+    const user_info = email ? { email } : mobile ? { mobile } : { username };
 
+    if (!user_info)
+      throw new ConflictException('No valid login information provided');
+
+    try {
       const user = await this.prisma.user.findUnique({
         where: user_info,
       });
@@ -346,14 +367,35 @@ export class AuthService {
         throw new ConflictException('user not exist!');
       }
 
-      //signin logic
-      // make auth in email / username or phone no .
-      // then get varify the user then
-      //  the  generate the jwt token
+      // Validate the password
+      const isPasswordValid = await this.validatePassword(
+        password,
+        user?.password,
+      );
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Incorrect password');
+      }
 
-      return { status: 1, signInDto };
+      // genarate jwt token
+      // JWT Token Generation
+
+      const jwtToken = this.generateJwtToken(user);
+      return {
+        status: 1,
+        msg: 'Sign-in successful',
+        jwtToken,
+      };
     } catch (error) {
-      return { status: 'error' };
+      console.error('Error during sign-in:', error);
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof ConflictException
+      )
+        throw error;
+      throw new InternalServerErrorException({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'an error coming at signIn',
+      });
     }
   }
   //GET ALL THE USER
