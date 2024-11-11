@@ -46,6 +46,10 @@ export class AuthService {
     );
   }
 
+  async jwtTokenVarfytest() {
+    return { message: 'Dummy operation successful', status: 'succesnjjs' };
+  }
+
   //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
   // done // => save the data and create the account
   // then on the next page give a option to varify the email

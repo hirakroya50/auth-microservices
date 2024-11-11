@@ -6,6 +6,7 @@ import {
   Post,
   Query,
   Redirect,
+  Request,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -27,6 +28,7 @@ import { SignInDto } from './dto/signIn.dto';
 
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Draft')
 @ApiBearerAuth()
@@ -34,6 +36,15 @@ import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 @UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
+  // t'odo
+
+  @Get('jwt-protected-route')
+  @UseGuards(JwtAuthGuard) // Protect the endpoint
+  async dummyOperation(@Request() req) {
+    // Perform a dummy operation (e.g., return a success message)
+    console.log(req.user);
+    return this.authService.jwtTokenVarfytest();
+  }
   // 1
   //***************************** SingUP ********************************************************************* */
 

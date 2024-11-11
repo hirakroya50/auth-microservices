@@ -13,7 +13,9 @@ import { SmsModule } from './sms/sms.module';
 import { SmsService } from './sms/sms.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 @Module({
   imports: [
     JwtModule.registerAsync({
@@ -42,6 +44,15 @@ import { JwtModule } from '@nestjs/jwt';
     SmsModule,
   ],
   controllers: [AppController, AuthController],
-  providers: [AppService, AuthService, PrismaService, EmailService, SmsService],
+  providers: [
+    AppService,
+    AuthService,
+    PrismaService,
+    EmailService,
+    SmsService,
+    JwtService,
+    JwtStrategy,
+    JwtAuthGuard,
+  ],
 })
 export class AppModule {}
