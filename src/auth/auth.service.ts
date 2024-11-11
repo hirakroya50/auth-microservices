@@ -25,7 +25,9 @@ import * as path from 'path';
 import { SmsService } from 'src/sms/sms.service';
 import { SignInDto } from './dto/signIn.dto';
 import { ConfigService } from '@nestjs/config';
+import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 
+import * as htmlTemplates from '../utils/html-response.util';
 @Injectable()
 export class AuthService {
   private readonly otpRedisKeyPrefix: string;
@@ -57,7 +59,7 @@ export class AuthService {
    * are unique. Returns the created user data excluding the password.
    * @param {SignUpDto} signUpData - The sign-up data containing email, username, and password.
    */
-  async signUp(signUpData: SignUpDto) {
+  async api_signUp(signUpData: SignUpDto) {
     const { email, password, username, mobile } = signUpData;
 
     try {
@@ -106,7 +108,7 @@ export class AuthService {
     }
   }
 
-  async generateOtp(generateOtpDto: GenerateOtpDto) {
+  async api_generateOtp(generateOtpDto: GenerateOtpDto) {
     const { email, mobile_with_country_code } = generateOtpDto;
 
     //check the user email is already exist or not
@@ -185,7 +187,7 @@ export class AuthService {
     }
   }
 
-  async verifyEmailByOtp(verifyOtpDto: EmailVerification_byOtpDto) {
+  async api_verifyEmailByOtp(verifyOtpDto: EmailVerification_byOtpDto) {
     const { email, mobile_with_country_code, otp } = verifyOtpDto;
     try {
       // FROM HERE ---- 8 november 19.36pm
@@ -234,15 +236,11 @@ export class AuthService {
     }
   }
 
-  private readHtmlTemplate(templateName: string): string {
-    // auth-microservices/templates/token-expired.html
-    // /Users/hirakroy/Documents/GitHub/auth-microservices/src/templates/token-expired.html
-    const filePath = path.join(__dirname, '../templates', templateName);
-    return fs.readFileSync(filePath, 'utf-8');
-  }
-
-  async sendEmailForUserVerificationByUrl(emailSendBodyDto: EmailSendBodyDto) {
+  async api_sendEmailForUserVerificationByUrl(
+    emailSendBodyDto: EmailSendBodyDto,
+  ) {
     const { email } = emailSendBodyDto;
+
     try {
       //genarate the url for dev mode / production mote => then send that in url
 
@@ -254,75 +252,55 @@ export class AuthService {
       });
 
       // Log the notfound
-      if (!existingUser) {
+      if (!existingUser)
         throw new NotFoundException('Email not added . signup first');
-      }
-      // genarate a random string as Toekn
 
-      let token = randomBytes(10).toString('hex').slice(0, 10); // Outputs a random string of length 10
-      console.log(token);
+      // genarate a random string as Toekn
+      let token = this.generateVerificationToken(); // Outputs a random string of length 10
 
       // save that in redis for 15m by key name email
-      const redis = await this.redisService.saveKeyValueInRedis({
-        key: emailSendBodyDto.email + this.otpRedisKeyPrefix,
-        exp_in: 15 * 60, // for 15m
-        data: token,
-      });
+      await this.saveTokenInRedis(email, token);
 
       // genarate a url
-
-      const dev_url = `http://localhost:3001/auth/verify-user?email=${emailSendBodyDto.email}&token=${token}`;
-      const prod_url = `http://www.somewebsite.com/auth/verify-user?email=${emailSendBodyDto.email}&token=${token}`;
+      const verificationUrl = this.generateVerificationUrl(email, token);
 
       // send the email
       // get method (http )
       //url:  localhost:3001/auth/otp-varification?email=emissl@hirak.com&token=sadjhasvdavs
 
-      await this.emailService.sendEmail({
-        to: emailSendBodyDto.email,
-        html: ` <body style="font-family: system-ui, math, sans-serif">
-        <div>
-          <p>Email Verification : this url is valid for 15 minutes</p>
-          <h1>DEV:</h1>
-          <p><a href="${dev_url}" style="color: blue; text-decoration: underline;">Click here to verify your email (Development)</a></p>
-          <br/>
-          <p>copy url:${dev_url} </p>
+      // await this.emailService.sendEmail({
+      //   to: emailSendBodyDto.email,
+      //   html: ` <body style="font-family: system-ui, math, sans-serif">
+      //   <div>
+      //     <p>Email Verification : this url is valid for 15 minutes</p>
+      //     <h1>DEV:</h1>
+      //     <p><a href="${verificationUrl.dev}" style="color: blue; text-decoration: underline;">Click here to verify your email (Development)</a></p>
+      //     <br/>
+      //     <p>copy url:${verificationUrl.prod} </p>
 
-          <h1>PROD:</h1>
-          <p><a href="${prod_url}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>
-        </div>
-      </body>`,
-        subject: 'User Email Verification',
-        text: 'Please verify your email address ',
-      });
+      //     <h1>PROD:</h1>
+      //     <p><a href="${verificationUrl.prod}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>
+      //   </div>
+      // </body>`,
+      //   subject: 'User Email Verification',
+      //   text: 'Please verify your email address ',
+      // });
 
       return {
         statusCode: HttpStatus.OK,
         email,
-        dev_url,
+        dev_url: verificationUrl.dev,
         message: 'Verification email sent successfully',
       };
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException({
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'An error occurred while sending the verification email',
-      });
+      this.handleException(error);
     }
   }
 
-  async verifyUserEmailByUrl({
-    email,
-    token,
-  }: {
-    email: string;
-    token: string;
-  }) {
+  //PB
+  //IMPOTENT : work have to add the file base html render .
+  // how can i access files in nest js ? by fs module
+  async api_verifyUserEmailByUrl({ email, token }: VerifyUserEmailDtoByLink) {
     try {
       // get the saved token form redis
       const otpFrom_redis =
@@ -342,15 +320,7 @@ export class AuthService {
         // );
         // console.log(filePath);
         // return fs.readFileSync(filePath, 'utf-8');
-        return `
-          <html>
-            <body>
-              <h2>Token Expired</h2>
-              <p>The token for email verification has expired.</p>
-              <a href="yourapp://redirect">Go back to the app for re verify again</a>
-            </body>
-          </html>
-        `;
+        return htmlTemplates.tokenExpiredHtml();
       }
 
       // now just varify the token
@@ -362,43 +332,20 @@ export class AuthService {
           data: { isVerified: true },
         });
 
-        return `
-          <html>
-            <body>
-              <h2>Email Verified Successfully</h2>
-              <p>Your email has been verified. You can now use the app.</p>
-              <a href="yourapp://redirect">Go to the app</a>
-            </body>
-          </html>
-        `;
+        return htmlTemplates.emailVerifiedHtml();
       }
 
       // if not invaild give a html that user has not varified
 
-      return `
-        <html>
-          <body>
-            <h2>Verification Failed</h2>
-            <p>The token does not match. Please try again.</p>
-            <a href="yourapp://redirect">Go back to the app</a>
-          </body>
-        </html>
-      `;
+      return htmlTemplates.verificationFailedHtml();
     } catch (error) {
-      return `
-        <html>
-          <body>
-            <h2>Error</h2>
-            <p>There was an error during verification. Please try again later.</p>
-          </body>
-        </html>
-      `;
+      return htmlTemplates.errorHtml();
     }
   }
 
   //SIGN-IN
 
-  async signIn(signInDto: SignInDto) {
+  async api_signIn(signInDto: SignInDto) {
     const { email, mobile, password, username } = signInDto;
     try {
       const user_info = email ? { email } : mobile ? { mobile } : { username };
@@ -422,7 +369,7 @@ export class AuthService {
     }
   }
   //GET ALL THE USER
-  async getAll() {
+  async api_getAll() {
     try {
       const allUser = await this.prisma.user.findMany();
       return { allUser };
@@ -432,7 +379,7 @@ export class AuthService {
   }
 
   //DELETE THE "MY EMAIL" JUST FOR TESTING
-  async deleteUser() {
+  async api_deleteUser() {
     try {
       const deleteUser = await this.prisma.user.delete({
         where: {
@@ -447,5 +394,44 @@ export class AuthService {
       }
       throw new ConflictException('Error occurred while deleting user');
     }
+  }
+
+  private readHtmlTemplate(templateName: string): string {
+    // auth-microservices/templates/token-expired.html
+    // /Users/hirakroy/Documents/GitHub/auth-microservices/src/templates/token-expired.html
+    const filePath = path.join(__dirname, '../templates', templateName);
+    return fs.readFileSync(filePath, 'utf-8');
+  }
+  private generateVerificationToken(): string {
+    return randomBytes(10).toString('hex').slice(0, 10);
+  }
+  private async saveTokenInRedis(email: string, token: string): Promise<void> {
+    const redis = await this.redisService.saveKeyValueInRedis({
+      key: email + this.otpRedisKeyPrefix,
+      exp_in: 15 * 60, // for 15m
+      data: token,
+    });
+  }
+
+  private generateVerificationUrl(email: string, token: string) {
+    const baseDevUrl = this.configService.get<string>('DEV_BASE_URL');
+    const baseProdUrl = this.configService.get<string>('PROD_BASE_URL');
+    const devUrl = `${baseDevUrl}/auth/verify-user?email=${email}&token=${token}`;
+    const prodUrl = `${baseProdUrl}/auth/verify-user?email=${email}&token=${token}`;
+
+    return { dev: devUrl, prod: prodUrl };
+  }
+
+  private handleException(error: any): never {
+    if (
+      error instanceof NotFoundException ||
+      error instanceof BadRequestException
+    )
+      throw error;
+
+    throw new InternalServerErrorException({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'An error occurred while sending the verification email',
+    });
   }
 }

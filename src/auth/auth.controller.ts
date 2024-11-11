@@ -7,6 +7,8 @@ import {
   Query,
   Redirect,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
@@ -24,6 +26,7 @@ import { SignInDto } from './dto/signIn.dto';
 // src/auth/dto/generate-otp-response.dto.ts
 
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
+import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 
 @ApiTags('Draft')
 @ApiBearerAuth()
@@ -36,7 +39,7 @@ export class AuthController {
 
   @Post('/sign-up')
   async signup(@Body() signupDto: SignUpDto) {
-    return this.authService.signUp(signupDto);
+    return this.authService.api_signUp(signupDto);
   }
 
   //*****************************OTP genaration and verification ******************************************** */
@@ -46,12 +49,12 @@ export class AuthController {
   // apply logic for the rate limiting type - 2 by @Throttle()
   // @Throttle({ default: { limit: 3, ttl: 60 * 1000 } })
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
-    return await this.authService.generateOtp(generateOtpDto);
+    return await this.authService.api_generateOtp(generateOtpDto);
   }
 
   @Post('/verify-otp')
   async verifyOtp(@Body() verifyOtpDto: EmailVerification_byOtpDto) {
-    return await this.authService.verifyEmailByOtp(verifyOtpDto);
+    return await this.authService.api_verifyEmailByOtp(verifyOtpDto);
   }
   //***************************** verification email genaration & get varified by link  ********************** */
 
@@ -63,18 +66,16 @@ export class AuthController {
   async sendEmailForUserVerificationByUrl(
     @Body() emailSendBodyDto: EmailSendBodyDto,
   ) {
-    return await this.authService.sendEmailForUserVerificationByUrl(
+    return await this.authService.api_sendEmailForUserVerificationByUrl(
       emailSendBodyDto,
     );
   }
 
   @Get('/verify-user')
   // @Redirect('https://url_for_thefrontnd.com')   // redirect logic // redirect the user after varified .
-  async verifyUserEmailByUrl(
-    @Query('email') email: string,
-    @Query('token') token: string,
-  ) {
-    return await this.authService.verifyUserEmailByUrl({ email, token });
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async verifyUserEmailByUrl(@Query() query: VerifyUserEmailDtoByLink) {
+    return await this.authService.api_verifyUserEmailByUrl(query);
     // without returning the html directy we can redirect our user in the frontend app
     // return { url: `https://url_for_thefrontnd.com` };
   }
@@ -83,18 +84,18 @@ export class AuthController {
 
   @Post('/sign-in')
   async signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto);
+    return this.authService.api_signIn(signInDto);
   }
 
   //******************************************************************************************************** */
 
   @Get('/')
   async getUser() {
-    return await this.authService.getAll();
+    return await this.authService.api_getAll();
   }
   @Delete('/')
   async deleteUser() {
-    return await this.authService.deleteUser();
+    return await this.authService.api_deleteUser();
   }
 }
 //
