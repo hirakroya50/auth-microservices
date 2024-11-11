@@ -241,90 +241,30 @@ export class AuthService {
     return fs.readFileSync(filePath, 'utf-8');
   }
 
-  async verifyUserEmailByUrl({
-    email,
-    token,
-  }: {
-    email: string;
-    token: string;
-  }) {
-    try {
-      // get the saved token form redis
-      const otpFrom_redis =
-        await this.redisService.getValueByKey_withClearKey_value({
-          key: email + 'urlVerification',
-        });
-
-      // if the token has expire then allso send a html
-      if (!otpFrom_redis?.data) {
-        // return this.readHtmlTemplate('token-expired.html');
-        // apply the templates to return the html
-        // const filePath = path.join(
-        //   __dirname,
-        //   '..',
-        //   'templates',
-        //   `token-expired.html`,
-        // );
-        // console.log(filePath);
-        // return fs.readFileSync(filePath, 'utf-8');
-        return `
-          <html>
-            <body>
-              <h2>Token Expired</h2>
-              <p>The token for email verification has expired.</p>
-              <a href="yourapp://redirect">Go back to the app</a>
-            </body>
-          </html>
-        `;
-      }
-      // now just varify the token
-      // if all okk then send a html => that user has varified /
-      if (otpFrom_redis?.data === token) {
-        return `
-          <html>
-            <body>
-              <h2>Email Verified Successfully</h2>
-              <p>Your email has been verified. You can now use the app.</p>
-              <a href="yourapp://redirect">Go to the app</a>
-            </body>
-          </html>
-        `;
-      }
-
-      // if not invaild give a html that user has not varified
-
-      return `
-        <html>
-          <body>
-            <h2>Verification Failed</h2>
-            <p>The token does not match. Please try again.</p>
-            <a href="yourapp://redirect">Go back to the app</a>
-          </body>
-        </html>
-      `;
-    } catch (error) {
-      return `
-        <html>
-          <body>
-            <h2>Error</h2>
-            <p>There was an error during verification. Please try again later.</p>
-          </body>
-        </html>
-      `;
-    }
-  }
-
   async sendEmailForUserVerificationByUrl(emailSendBodyDto: EmailSendBodyDto) {
+    const { email } = emailSendBodyDto;
     try {
       //genarate the url for dev mode / production mote => then send that in url
 
+      // Check if user with the email already exists
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          email,
+        },
+      });
+
+      // Log the notfound
+      if (!existingUser) {
+        throw new NotFoundException('Email not added . signup first');
+      }
       // genarate a random string as Toekn
+
       let token = randomBytes(10).toString('hex').slice(0, 10); // Outputs a random string of length 10
       console.log(token);
 
       // save that in redis for 15m by key name email
-      await this.redisService.saveKeyValueInRedis({
-        key: emailSendBodyDto.email + 'urlVerification',
+      const redis = await this.redisService.saveKeyValueInRedis({
+        key: emailSendBodyDto.email + this.otpRedisKeyPrefix,
         exp_in: 15 * 60, // for 15m
         data: token,
       });
@@ -356,12 +296,103 @@ export class AuthService {
         text: 'Please verify your email address ',
       });
 
-      return { token, email: emailSendBodyDto.email, dev_url };
-    } catch (error) {
       return {
-        ero: 'error',
-        error,
+        statusCode: HttpStatus.OK,
+        email,
+        dev_url,
+        message: 'Verification email sent successfully',
       };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'An error occurred while sending the verification email',
+      });
+    }
+  }
+
+  async verifyUserEmailByUrl({
+    email,
+    token,
+  }: {
+    email: string;
+    token: string;
+  }) {
+    try {
+      // get the saved token form redis
+      const otpFrom_redis =
+        await this.redisService.getValueByKey_withClearKey_value({
+          key: email + this.otpRedisKeyPrefix,
+        });
+
+      // if the token has expire then allso send a html
+      if (!otpFrom_redis?.data) {
+        // return this.readHtmlTemplate('token-expired.html');
+        // apply the templates to return the html
+        // const filePath = path.join(
+        //   __dirname,
+        //   '..',
+        //   'templates',
+        //   `token-expired.html`,
+        // );
+        // console.log(filePath);
+        // return fs.readFileSync(filePath, 'utf-8');
+        return `
+          <html>
+            <body>
+              <h2>Token Expired</h2>
+              <p>The token for email verification has expired.</p>
+              <a href="yourapp://redirect">Go back to the app for re verify again</a>
+            </body>
+          </html>
+        `;
+      }
+
+      // now just varify the token
+      // if all okk then send a html => that user has varified /
+      if (otpFrom_redis?.data === token) {
+        //  update the db that the email is verified
+        await this.prisma.user.update({
+          where: { email },
+          data: { isVerified: true },
+        });
+
+        return `
+          <html>
+            <body>
+              <h2>Email Verified Successfully</h2>
+              <p>Your email has been verified. You can now use the app.</p>
+              <a href="yourapp://redirect">Go to the app</a>
+            </body>
+          </html>
+        `;
+      }
+
+      // if not invaild give a html that user has not varified
+
+      return `
+        <html>
+          <body>
+            <h2>Verification Failed</h2>
+            <p>The token does not match. Please try again.</p>
+            <a href="yourapp://redirect">Go back to the app</a>
+          </body>
+        </html>
+      `;
+    } catch (error) {
+      return `
+        <html>
+          <body>
+            <h2>Error</h2>
+            <p>There was an error during verification. Please try again later.</p>
+          </body>
+        </html>
+      `;
     }
   }
 

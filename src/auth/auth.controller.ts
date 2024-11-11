@@ -55,6 +55,10 @@ export class AuthController {
   }
   //***************************** verification email genaration & get varified by link  ********************** */
 
+  //FROM HERE
+  // /singup . /generate-otp /verify-otp check kora hoyeche .
+  // link diye user ke verify kora ta dhekte hbe
+  //CHECK START FROM HERE
   @Get('/send-email-user-verification')
   async sendEmailForUserVerificationByUrl(
     @Body() emailSendBodyDto: EmailSendBodyDto,
