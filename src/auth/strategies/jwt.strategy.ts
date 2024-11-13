@@ -1,4 +1,3 @@
-// src/auth/strategies/jwt.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
@@ -25,7 +24,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new Error('User not found');
     }
+    if (!user.isVerified) {
+      return {
+        payload,
+        user,
+        isVerifiedUser: false,
+      };
+    }
 
-    return { userId: payload.userId, email: payload.email };
+    return {
+      payload,
+      user,
+      isVerifiedUser: true,
+    };
   }
 }

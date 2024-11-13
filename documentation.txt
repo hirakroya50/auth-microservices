@@ -72,6 +72,8 @@ or,
 SIGN_IN  
 
 by this   @Post('/sign-in') we can sign in (email/ username/ phone, password )
+- after signin there willbe a jwt token that will saved in the redis , by that user can acces the other app service 
+
 
 
 
