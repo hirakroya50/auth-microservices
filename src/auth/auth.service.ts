@@ -365,7 +365,10 @@ export class AuthService {
       // genarate jwt token
       // JWT Token Generation
 
-      const jwtToken = this.generateJwtToken(user);
+      const jwtToken = this.generateJwtToken({
+        email: user.email,
+        id: user.id,
+      });
       return {
         status: 1,
         msg: 'Sign-in successful',
@@ -384,6 +387,32 @@ export class AuthService {
       });
     }
   }
+
+  //REFRESH TOKEN
+
+  async api_refreshToken(refreshToken: string) {
+    try {
+      const decoded = await this.validateRefreshToken(refreshToken);
+
+      const tokens = this.generateJwtToken({
+        email: decoded?.email,
+        id: decoded?.userId,
+      });
+      return { tokens };
+    } catch (error) {}
+  }
+
+  // Validate Refresh Token
+  async validateRefreshToken(token: string) {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
   //GET ALL THE USER
   async api_getAll() {
     try {
@@ -419,16 +448,22 @@ export class AuthService {
   ): Promise<boolean> {
     return bcrypt.compare(inputPassword, storedPassword);
   }
-  private generateJwtToken(user: any): string {
-    const payload = { userId: user.id, email: user.email };
-    const secretKey = this.configService.get<string>('JWT_SECRET_KEY');
-    const expiration =
-      this.configService.get<string>('JWT_EXPIRATION') || '60m';
-
-    return this.jwtService.sign(payload, {
-      secret: secretKey,
-      expiresIn: expiration,
+  private generateJwtToken(data: { id: string | number; email: string }): {
+    accessToken: string;
+    refreshToken: string;
+  } {
+    const payload = { userId: data.id, email: data.email };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN'),
     });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+    });
+
+    return { accessToken, refreshToken };
   }
   //--------------------------end---------------
 

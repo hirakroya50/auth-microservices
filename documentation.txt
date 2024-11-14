@@ -1,7 +1,7 @@
 
 
 can do now : 
--- login logic with jwt token save the token in redis then impliemt other features 
+-- login logic with jwt token save the token in redis then implement other features 
  Refresh Token Mechanism
 - refresh token system to extend user sessions without requiring them to log in frequently.
 - Store refresh tokens securely in a database or in-memory store like Redis and use JWT for access tokens.
@@ -16,7 +16,7 @@ can do now :
 - Use  @nestjs/throttler for rate-limiting.
 
 -Implement automatic account lockout after a certain number of failed attempts with a temporary block.
-- RATE LIMITE FOR FREE USER / AND UNLIMITED FOR PAID / OR ACCESS PERDITION AS PER THE PACKEGE : IN MONTH , WEEK , YEAR 
+- RATE LIMIT FOR FREE USER / AND UNLIMITED FOR PAID / OR ACCESS PERDITION AS PER THE PACKAGE : IN MONTH , WEEK , YEAR 
 
 
 6. Session Management
@@ -39,7 +39,7 @@ can do now :
 2. use redis in :  otp save in chach 
 3. nodemailer to send the email 
 4. Twilio for end tge sms to phone no 
-5. rate limit to the otp genaration  -> 
+5. rate limit to the otp generation  -> 
       2 types of rate limiting 
       1. by own logic in the smsService 
       2. by @nestjs/throttler
@@ -72,7 +72,7 @@ or,
 SIGN_IN  
 
 by this   @Post('/sign-in') we can sign in (email/ username/ phone, password )
-- after signin there willbe a jwt token that will saved in the redis , by that user can acces the other app service 
+- after signIn there will be a jwt token that will saved in the redis , by that user can access the other app service 
 
 
 

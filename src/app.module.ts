@@ -22,9 +22,10 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET_KEY'),
+        secret: configService.get<string>('JWT_ACCESS_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION') || '60m',
+          expiresIn:
+            configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '60m',
         },
       }),
     }),

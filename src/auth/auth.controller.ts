@@ -98,6 +98,11 @@ export class AuthController {
     return this.authService.api_signIn(signInDto);
   }
 
+  @Post('/refreshToken')
+  async refreshToken(@Body('refreshToken') refreshToken: string) {
+    return this.authService.api_refreshToken(refreshToken);
+  }
+
   //******************************************************************************************************** */
 
   @Get('/')
