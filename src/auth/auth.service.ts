@@ -389,25 +389,17 @@ export class AuthService {
   }
 
   //REFRESH TOKEN
-
   async api_refreshToken(refreshToken: string) {
     try {
-      const decoded = await this.validateRefreshToken(refreshToken);
+      const decoded = await this.jwtService.verify(refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      });
 
       const tokens = this.generateJwtToken({
         email: decoded?.email,
         id: decoded?.userId,
       });
       return { tokens };
-    } catch (error) {}
-  }
-
-  // Validate Refresh Token
-  async validateRefreshToken(token: string) {
-    try {
-      return this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-      });
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
