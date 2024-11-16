@@ -29,6 +29,7 @@ import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 
 import * as htmlTemplates from '../utils/html-response.util';
 import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 @Injectable()
 export class AuthService {
   private readonly otpRedisKeyPrefix: string;
@@ -337,7 +338,13 @@ export class AuthService {
   }
 
   //SIGN-IN
-  async api_signIn(signInDto: SignInDto) {
+  async api_signIn({
+    signInDto,
+    res,
+  }: {
+    signInDto: SignInDto;
+    res: Response;
+  }) {
     const { email, mobile, password, username } = signInDto;
     const user_info = email ? { email } : mobile ? { mobile } : { username };
 
@@ -364,16 +371,26 @@ export class AuthService {
 
       // genarate jwt token
       // JWT Token Generation
+      // jwtToken will look like this :  { accessToken:string, refreshToken:string }
 
-      const jwtToken = this.generateJwtToken({
+      const { accessToken, refreshToken } = this.generateJwtToken({
         email: user.email,
         id: user.id,
       });
-      return {
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true, //value will be true => process.env.NODE_ENV === 'production',// Ensure it's only sent over HTTPS in production
+        sameSite: 'strict', // Protect against CSRF attacks,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.status(HttpStatus.OK).json({
         status: 1,
         msg: 'Sign-in successful',
-        jwtToken,
-      };
+        accessToken,
+        refreshToken,
+      });
     } catch (error) {
       console.error('Error during sign-in:', error);
       if (
@@ -394,11 +411,25 @@ export class AuthService {
       const decoded = await this.jwtService.verify(refreshToken, {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
       });
+      //// Check if the token is valid and exists in the database
+      // const storedToken = await this.prisma.refreshToken.findFirst({
+      //   where: { token: refreshToken, userId: decoded.id },
+      // });
+
+      // if (!storedToken) {
+      //   throw new UnauthorizedException('Invalid or expired refresh token');
+      // }
 
       const tokens = this.generateJwtToken({
         email: decoded?.email,
         id: decoded?.userId,
       });
+
+      // Update the refresh token in the database (optional)
+      // await this.prisma.refreshToken.update({
+      //   where: { id: storedToken.id },
+      //   data: { token: tokens.refreshToken },
+      // });
       return { tokens };
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');

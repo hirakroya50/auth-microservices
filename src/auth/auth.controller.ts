@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Post,
   Query,
   Redirect,
   Request,
+  Res,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -24,6 +26,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { EmailVerification_byOtpDto } from './dto/email-otp-varification.dto';
 import { EmailSendBodyDto } from './dto/email-send-body.dto';
 import { SignInDto } from './dto/signIn.dto';
+import { Response } from 'express';
 // src/auth/dto/generate-otp-response.dto.ts
 
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
@@ -94,8 +97,8 @@ export class AuthController {
   //***************************** SignIN *************************************************************************** */
 
   @Post('/sign-in')
-  async signIn(@Body() signInDto: SignInDto) {
-    return this.authService.api_signIn(signInDto);
+  async signIn(@Body() signInDto: SignInDto, @Res() res: Response) {
+    return this.authService.api_signIn({ signInDto, res });
   }
 
   @Post('/refreshToken')
