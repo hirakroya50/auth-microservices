@@ -43,6 +43,11 @@ can do now :
       2 types of rate limiting 
       1. by own logic in the smsService 
       2. by @nestjs/throttler
+5. refresh token machanisam (access token and refresh token )
+6.  save the access token in the http cookie and user can access  
+the token for other api call. this will do in auth microservice at the /login api 
+7. this access token will be use for make api call in b-logic-microservice
+
 
 
 SIGN_UP
