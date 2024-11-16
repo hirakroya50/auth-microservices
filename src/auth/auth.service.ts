@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   HttpStatus,
   Inject,
   Injectable,
@@ -29,7 +30,8 @@ import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 
 import * as htmlTemplates from '../utils/html-response.util';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import { Response, Request as ExpressRequest } from 'express';
+
 @Injectable()
 export class AuthService {
   private readonly otpRedisKeyPrefix: string;
@@ -377,8 +379,8 @@ export class AuthService {
         email: user.email,
         id: user.id,
       });
-
-      res.cookie('refreshToken', refreshToken, {
+      //set the http cookie
+      res.cookie('accessToken', accessToken, {
         httpOnly: true,
         secure: true, //value will be true => process.env.NODE_ENV === 'production',// Ensure it's only sent over HTTPS in production
         sameSite: 'strict', // Protect against CSRF attacks,
@@ -402,6 +404,37 @@ export class AuthService {
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'an error coming at signIn',
       });
+    }
+  }
+
+  async accessTokenTest({ req, res }: { req: ExpressRequest; res: Response }) {
+    try {
+      console.log('refresh cookies ======', req?.cookies);
+
+      // Extract refresh token from cookies
+      const accessToken = req?.cookies?.accessToken;
+      console.log('refresh token ======', accessToken);
+
+      if (!accessToken) {
+        throw new HttpException(
+          'No accessToken  provided',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      // Return a success response
+      return res.status(HttpStatus.OK).json({ accessToken });
+      return {
+        accessToken,
+      };
+    } catch (error) {
+      console.error('Error during refresh token:', error.message);
+
+      // Return an error response
+      throw new HttpException(
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 

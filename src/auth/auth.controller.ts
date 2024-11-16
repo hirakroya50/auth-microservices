@@ -3,16 +3,19 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   HttpStatus,
   Post,
   Query,
   Redirect,
+  Req,
   Request,
   Res,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import {
   ApiBearerAuth,
@@ -26,7 +29,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { EmailVerification_byOtpDto } from './dto/email-otp-varification.dto';
 import { EmailSendBodyDto } from './dto/email-send-body.dto';
 import { SignInDto } from './dto/signIn.dto';
-import { Response } from 'express';
+import { Response, Request as ExpressRequest } from 'express';
 // src/auth/dto/generate-otp-response.dto.ts
 
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
@@ -99,6 +102,11 @@ export class AuthController {
   @Post('/sign-in')
   async signIn(@Body() signInDto: SignInDto, @Res() res: Response) {
     return this.authService.api_signIn({ signInDto, res });
+  }
+
+  @Post('/access-token-test')
+  async accessTokenTest(@Req() req: ExpressRequest, @Res() res: Response) {
+    return this.authService.accessTokenTest({ req, res });
   }
 
   @Post('/refreshToken')
