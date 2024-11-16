@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-
+import * as cookieParser from 'cookie-parser';
 dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,6 +31,8 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Accept', // Allowed headers
     credentials: true, // Allow credentials (cookies)
   });
+
+  app.use(cookieParser()); // Enable cookie parsing
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
