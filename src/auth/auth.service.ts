@@ -407,6 +407,32 @@ export class AuthService {
     }
   }
 
+  //LOGOUT
+  async api_logout(res: Response) {
+    try {
+      // Clear the access token cookie
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: true, //only for dev mode Ensure it's only sent over HTTPS in production
+        sameSite: 'strict', // Protect against CSRF attacks
+      });
+
+      // If needed, add logic to invalidate tokens (e.g., remove refresh tokens from DB/Redis)
+      // For example: await this.invalidateToken(userId);
+
+      return res.status(HttpStatus.OK).json({
+        status: 1,
+        msg: 'Logout successful',
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      throw new InternalServerErrorException({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'An error occurred during logout',
+      });
+    }
+  }
+
   async accessTokenTest({ req, res }: { req: ExpressRequest; res: Response }) {
     try {
       console.log('refresh cookies ======', req?.cookies);

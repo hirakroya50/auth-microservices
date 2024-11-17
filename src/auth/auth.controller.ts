@@ -114,6 +114,11 @@ export class AuthController {
     return this.authService.api_refreshToken(refreshToken);
   }
 
+  //*****************LOGOUT*************************************************************************************** */
+  @Post('/logout')
+  async logout(@Res() res: Response) {
+    return this.authService.api_logout(res);
+  }
   //******************************************************************************************************** */
 
   @Get('/')
