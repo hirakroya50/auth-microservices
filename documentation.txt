@@ -49,6 +49,16 @@ the token for other api call. this will do in auth microservice at the /login ap
 7. this access token will be use for make api call in b-logic-microservice
 
 
+//TOPIC COVER
+Next.js
+1. login form by react-from-hook 
+2. add react-hot-toast for notificaion 
+3. backend intrigarion by trpc route (use zod for types)
+4. add coustom hook for trpc and use in the component
+5. 
+
+
+
 
 SIGN_UP
 
