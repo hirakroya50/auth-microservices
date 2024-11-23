@@ -1,19 +1,19 @@
 
 
 can do now : 
--- login logic with jwt token save the token in redis then implement other features 
- Refresh Token Mechanism
-- refresh token system to extend user sessions without requiring them to log in frequently.
+DONE-- login logic with jwt token save the token in redis then implement other features 
+DONE-- Refresh Token Mechanism
+DONE- refresh token system to extend user sessions without requiring them to log in frequently.
 - Store refresh tokens securely in a database or in-memory store like Redis and use JWT for access tokens.
--Include an option for users to invalidate or revoke refresh tokens (e.g., logout from all devices).
+- Include an option for users to invalidate or revoke refresh tokens (e.g., logout from all devices).
 
 
 -> role-based access control like Admin, User, Moderator, etc.,
 
 *************************************DONE
-5. Rate Limiting and Brute Force Protection
-- Add rate limiting (e.g., limit OTP requests  ).
-- Use  @nestjs/throttler for rate-limiting.
+DONE--- 5. Rate Limiting and Brute Force Protection
+DONE--- Add rate limiting (e.g., limit OTP requests  ).
+DONE--- Use  @nestjs/throttler for rate-limiting.
 
 -Implement automatic account lockout after a certain number of failed attempts with a temporary block.
 - RATE LIMIT FOR FREE USER / AND UNLIMITED FOR PAID / OR ACCESS PERDITION AS PER THE PACKAGE : IN MONTH , WEEK , YEAR 
@@ -55,7 +55,8 @@ Next.js
 2. add react-hot-toast for notificaion 
 3. backend intrigarion by trpc route (use zod for types)
 4. add coustom hook for trpc and use in the component
-5. 
+5. make component for reusability and sort code . 
+6. maintain file
 
 
 
