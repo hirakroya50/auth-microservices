@@ -53,13 +53,6 @@ export class AuthService {
     return { message: 'Dummy operation successful', status: 'succesnjjs' };
   }
 
-  //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
-  // done // => save the data and create the account
-  // then on the next page give a option to varify the email
-  // without varify the email user can login to the app .
-  // but without varify the email user only and see the analiics , data and other tigs .
-  // without varify the email user can get the total acces
-
   /**
    * Signup a new user in the system.
    *

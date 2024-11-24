@@ -130,21 +130,3 @@ export class AuthController {
     return await this.authService.api_deleteUser();
   }
 }
-//
-/*
-/ -----------------PAID IMPORTANT WORK ----------
-/sigin in logic with jwt token 
-
-1. make a quue by or other  rabit mq, 
-1. google github login 
-2. forget password logic 
-3. jwt token generation after verified login with token expire
-      -> token will be valid for 2days 
-      -> token will be saved in the redis 
-      -> on the 2rd day of token , if the user login or stay login then just auto update the jwt token that will validate for 2day
-
-4. 
-
-
-
- */

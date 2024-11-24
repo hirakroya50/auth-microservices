@@ -59,6 +59,28 @@ Next.js
 6. maintain file
 
 
+---------------------------------------------------------------------------------------
+DOC FORM THE AUTH SERVICE FILE
+ //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )
+  // done // => save the data and create the account
+  // then on the next page give a option to varify the email
+  // without varify the email user can login to the app .
+  // but without varify the email user only and see the analiics , data and other tigs .
+  // without varify the email user can get the total acces
+/sigin in logic with jwt token 
+
+1. make a quue by or other  rabit mq, 
+1. google github login 
+2. forget password logic 
+3. jwt token generation after verified login with token expire
+      -> token will be valid for 2days 
+      -> token will be saved in the redis 
+      -> on the 2rd day of token , if the user login or stay login then just auto update the jwt token that will validate for 2day
+
+4. 
+
+---------------------------------------------------------------------------------------
+
 
 
 SIGN_UP
