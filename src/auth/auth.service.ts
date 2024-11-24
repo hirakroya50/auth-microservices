@@ -371,6 +371,7 @@ export class AuthService {
       const { accessToken, refreshToken } = this.generateJwtToken({
         email: user.email,
         id: user.id,
+        role: user.role,
       });
       //set the http cookie
       res.cookie('accessToken', accessToken, {
@@ -475,6 +476,7 @@ export class AuthService {
       const tokens = this.generateJwtToken({
         email: decoded?.email,
         id: decoded?.userId,
+        role: decoded?.role,
       });
 
       // Update the refresh token in the database (optional)
@@ -523,11 +525,15 @@ export class AuthService {
   ): Promise<boolean> {
     return bcrypt.compare(inputPassword, storedPassword);
   }
-  private generateJwtToken(data: { id: string | number; email: string }): {
+  private generateJwtToken(data: {
+    id: string | number;
+    email: string;
+    role: 'USER' | 'ADMIN' | 'MANAGER';
+  }): {
     accessToken: string;
     refreshToken: string;
   } {
-    const payload = { userId: data.id, email: data.email };
+    const payload = { userId: data.id, email: data.email, role: data.role };
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN'),

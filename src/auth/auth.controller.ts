@@ -35,6 +35,8 @@ import { Response, Request as ExpressRequest } from 'express';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @ApiTags('Draft')
 @ApiBearerAuth()
@@ -43,6 +45,20 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private authService: AuthService) {}
   // t'odo
+
+  // --------route for role base access------------------------------------------------------
+  @Get('/user')
+  @Roles(Role.USER)
+  getUserData() {
+    return { message: 'USER data' };
+  }
+
+  @Get('/admin')
+  @Roles(Role.ADMIN)
+  getAdminData() {
+    return { message: 'admin data' };
+  }
+  // --------------------------------------------------------------
 
   @Get('jwt-protected-route')
   @UseGuards(JwtAuthGuard) // Protect the endpoint
