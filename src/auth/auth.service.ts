@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { GenerateOtpDto } from './dto/genarate-otp.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User, Prisma } from '@prisma/client';
 
 import { EmailService } from 'src/email/email.service';
 import Redis from 'ioredis';
@@ -105,7 +104,7 @@ export class AuthService {
     const { email, mobile_with_country_code } = generateOtpDto;
 
     //check the user email is already exist or not
-    let user: User;
+    let user;
     if (email) {
       user = await this.prisma.user.findUnique({
         where: { email },
@@ -624,7 +623,7 @@ export class AuthService {
 
   // functions for sign up-----------------------
   private checkUserForConflicts_ForSignup(
-    existingUser: User | null,
+    existingUser: any,
     email: string,
     username: string,
   ): void {

@@ -2,7 +2,6 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from '@prisma/client';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -30,7 +29,9 @@ export class RolesGuard implements CanActivate {
 
     if (!token) return false;
 
-    const user = this.jwtService.decode(token) as { role: Role };
+    const user = this.jwtService.decode(token) as {
+      role: 'ADMIN' | 'USER' | 'MANAGER';
+    };
     return requiredRoles.includes(user.role);
   }
 }

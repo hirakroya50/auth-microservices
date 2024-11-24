@@ -36,8 +36,6 @@ import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Roles } from './decorators/roles.decorator';
-import { Role } from '@prisma/client';
-
 @ApiTags('Draft')
 @ApiBearerAuth()
 @Controller('auth')
@@ -48,13 +46,13 @@ export class AuthController {
 
   // --------route for role base access------------------------------------------------------
   @Get('/user')
-  @Roles(Role.USER)
+  @Roles('USER')
   getUserData() {
     return { message: 'USER data' };
   }
 
   @Get('/admin')
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   getAdminData() {
     return { message: 'admin data' };
   }
