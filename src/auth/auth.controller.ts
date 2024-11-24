@@ -116,8 +116,14 @@ export class AuthController {
   //***************************** SignIN *************************************************************************** */
 
   @Post('/sign-in')
-  async signIn(@Body() signInDto: SignInDto, @Res() res: Response) {
-    return this.authService.api_signIn({ signInDto, res });
+  async signIn(
+    @Body() signInDto: SignInDto,
+    @Req() req: ExpressRequest,
+    @Res() res: Response,
+  ) {
+    // have to test that ip addres console in PROD
+    let ipAddress = req.ip || req.connection.remoteAddress;
+    return this.authService.api_signIn({ signInDto, ipAddress, res });
   }
 
   @Post('/access-token-test')

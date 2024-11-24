@@ -31,6 +31,7 @@ import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 import * as htmlTemplates from '../utils/html-response.util';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request as ExpressRequest } from 'express';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -335,9 +336,11 @@ export class AuthService {
   //SIGN-IN
   async api_signIn({
     signInDto,
+    ipAddress,
     res,
   }: {
     signInDto: SignInDto;
+    ipAddress: string;
     res: Response;
   }) {
     const { email, mobile, password, username } = signInDto;
@@ -355,19 +358,27 @@ export class AuthService {
         throw new ConflictException('user not exist!');
       }
 
+      // Get location based on IP
+      const location = await this.getLocationFromIP(ipAddress);
+      console.log(location);
+      //MODIFICATION FOR LOOCATION / IP FEATURE
+      // cant test this feature . this have to test in PROD. and cant get the loction for all machine . have to reserch on that
+      //SAVE THE LOGIN ATTEM WITH IP AND LOCATION IN THE DATABASE AND
+      //ALSO NOTIFY THE USER WHEN MAKE A LOGIN
+      // make this location  ip feature in sycronusly so that that will not effect the main flow of the loin
+      // login in api sould be fast
+
       // Validate the password
       const isPasswordValid = await this.validatePassword(
         password,
         user?.password,
       );
+
       if (!isPasswordValid) {
         throw new UnauthorizedException('Incorrect password');
       }
 
-      // genarate jwt token
       // JWT Token Generation
-      // jwtToken will look like this :  { accessToken:string, refreshToken:string }
-
       const { accessToken, refreshToken } = this.generateJwtToken({
         email: user.email,
         id: user.id,
@@ -398,6 +409,27 @@ export class AuthService {
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'an error coming at signIn',
       });
+    }
+  }
+
+  //get the location by ip address
+  private async getLocationFromIP(ip: string): Promise<any> {
+    const apiKey = this.configService.get<string>('IPSTACK_API_AccessKey');
+    // for localhost / dev modee
+    if (ip === '127.0.0.1' || ip === '::1') {
+      return { city: 'Localhost', country: 'Local', region: 'Local' };
+    }
+
+    try {
+      // 134.201.250.155
+      const response = await axios.get(
+        `https://api.ipstack.com/${ip}?access_key=${apiKey}&format=1`,
+      );
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching location:', error);
+      return null;
     }
   }
 
