@@ -152,7 +152,7 @@ export class AuthService {
           <div>
             Hotel Booking page , OTP MAIL
             <br />
-              <h1>YOUR OTP IS :${random_g_otp}</h1>
+              <h1>YOUR OTP IS :"${random_g_otp}"</h1>
               <h4>This otp is valid for 15m </h4>
           </div>
         </body>`,
