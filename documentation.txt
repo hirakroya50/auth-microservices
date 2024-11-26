@@ -66,7 +66,12 @@ Next.js
 3. backend intrigarion by trpc route (use zod for types)
 4. add coustom hook for trpc and use in the component
 5. make component for reusability and sort code . 
-6. maintain file
+6. maintain file structure
+7. make custom hook for api call / instigation 
+8. make instigation by trpc 
+9. add popup notification by :"react-hot-toast"
+10. dark mode light mode by tailwind config file 
+
 
 
 ---------------------------------------------------------------------------------------
