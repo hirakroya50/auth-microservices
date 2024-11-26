@@ -43,10 +43,20 @@ DONE--- Use  @nestjs/throttler for rate-limiting.
       2 types of rate limiting 
       1. by own logic in the smsService 
       2. by @nestjs/throttler
-5. refresh token machanisam (access token and refresh token )
-6.  save the access token in the http cookie and user can access  
+5. refresh token machanisam (access token[jwt] and refresh token )
+6.  save the access token(jwt) in the http cookie and user can access  
+   by using cookie parser
 the token for other api call. this will do in auth microservice at the /login api 
+clear the token form http catch at the time of logout 
+7. make the docker image for auth service and push that to the docker hub
+8. github CI making for every branch , update the docker image for the main branch 
+   and push to the dockerhub 
+9. add role base acccess fot the routes 
+10. add cors policy
 7. this access token will be use for make api call in b-logic-microservice
+8. make  a simple websocket by "ws" in b-logic-microservice, and the frontend in nextjs 
+9. ip location get in the api request , and the get the location by the api , have to
+test in the production ,
 
 
 //TOPIC COVER
