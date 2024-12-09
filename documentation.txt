@@ -8,7 +8,7 @@ DONE- refresh token system to extend user sessions without requiring them to log
 - Include an option for users to invalidate or revoke refresh tokens (e.g., logout from all devices).
 
 
--> role-based access control like Admin, User, Moderator, etc.,
+-> DONE role-based access control like Admin, User, Moderator, etc.,
 
 *************************************DONE
 DONE--- 5. Rate Limiting and Brute Force Protection
@@ -126,12 +126,6 @@ SIGN_IN
 
 by this   @Post('/sign-in') we can sign in (email/ username/ phone, password )
 - after signIn there will be a jwt token that will saved in the redis , by that user can access the other app service 
-
-
-
-
-
-
 
 
 
