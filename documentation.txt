@@ -1,3 +1,7 @@
+***** NB : pending : have to make the same DB for all the backend services 
+***** now cloudflare have a neon db with a prisma pool url 
+***** and all nestjs microservies have localhost postgreds db 
+
 
 
 can do now : 
@@ -27,7 +31,7 @@ DONE--- Use  @nestjs/throttler for rate-limiting.
 - For example, use message queues (RabbitMQ, Kafka, etc.) for actions like sending OTPs, verification emails, or triggering post-login events.
 
 
-12. IP and Location Tracking for Security
+12.DONE : Have to update in PROD. IP and Location Tracking for Security
 - Log the IP address and location (approximate) of every login attempt and notify users of unusual login attempts.
 - Provide users with an option to enable or disable notifications for logins from new devices or locations.
 
@@ -71,9 +75,13 @@ Next.js
 8. make instigation by trpc 
 9. add popup notification by :"react-hot-toast"
 10. dark mode light mode by tailwind config file 
+11. add Debouncing and throttling in inputfeild
 
 
 
+SERVERLESS 
+1. DONE : CURD post in cloudflare , make hono app , db connecting pooling in prisma postgres
+cloudflare
 ---------------------------------------------------------------------------------------
 DOC FORM THE AUTH SERVICE FILE
  //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )

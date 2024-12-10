@@ -1,17 +1,18 @@
-A good complex dashboard page for HTML, CSS & animation
-Deploy frontend in AWS
-Web socket
-Backend backend communication: Pub-Sub, REST/GraphQL, Messaging queue, Server-Sent Events
-AWS, Cloudflare, AWS CDNS, S3 bucket, AWS EC2
-Pooling in serverless
+* A good complex dashboard page for HTML, CSS & animation
+* Deploy frontend in AWS
+* Web socket
+* Notification system
+
+* Backend backend communication: Pub-Sub, REST/GraphQL, Messaging queue, Server-Sent Events
+* AWS, Cloudflare, AWS CDNS, S3 bucket, AWS EC2, AWS lambra 
+* Pooling in serverless
 Middlewares
-Debouncing and throttling
-Rate limiting
+DONE - Debouncing and throttling
+DONE - Rate limiting
 Access permission if user pays or uses a service as per the package
 Multiple user login (OFF)
-Get user IP, location in the server, and use that on the service
+DONE - Get user IP, location in the server, and use that on the service
 Google / GitHub login
-Notification system
 DDOS attack
 Deploy package in npm
 
