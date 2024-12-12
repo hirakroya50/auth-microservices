@@ -18,17 +18,18 @@ Deploy package in npm
 
 secnd: ---------
 LLM instigation
-Monorepos, turborepo
-Docker, Kubernetes
-webRTC, TCP, GRPC
 DB: indexing, normalization, joins
+Horizontal, vertical, auto scaling
+webRTC, TCP, GRPC
+Scaling Node.js, performance benchmarks
+Docker, Kubernetes
+
+**Newer clouds like fly/Remix
+Monorepos, turborepo
 CI/CD
 Testing
-Horizontal, vertical, auto scaling
 Authentication using external libraries
-Scaling Node.js, performance benchmarks
 Reconcilers and frontend frameworks
-Newer clouds like fly/Remix
 Nginx and reverse proxies
 GSoC project setting up
 a python project as backend (auth + curd + mongodb + sql)
