@@ -81,7 +81,24 @@ Next.js
 
 SERVERLESS 
 1. DONE : CURD post in cloudflare , make hono app , db connecting pooling in prisma postgres
+         deploy link : https://serverless-bend.hirakroya50.workers.dev/
 cloudflare
+
+
+2.AWS - EC2
+-->host b-logic-microservice in the Ec2 insting . 
+  create ingtings , select machine type , select os -> select / create a key pare for login by terminal 
+  ->lanch instings -> open the terminal where the key-pair have and then ssh the EC2 machine by : 
+this command "ssh -i <key-pair name>  ubuntu@<ip address>"
+
+->this will enter the EC2 machine , if the key-pair dont have read-write permition then give the permition , by this command  "chmod 700 <key-paire name >"
+->then clone a project repo . for github privet repo use the github Credential Manager to clone the repo 
+-> insatll npm , node -> npm i -> npm build -> start the server 
+-> config the port form the AWS EC2 setting (settings - > Security group- > Inbound rules)
+-> add Inbound rules with the port no
+
+
+
 ---------------------------------------------------------------------------------------
 DOC FORM THE AUTH SERVICE FILE
  //done  Signup steps => get the user first data : "email",, "password" username , DOB, others , mob no(optonal )

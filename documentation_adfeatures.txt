@@ -32,3 +32,5 @@ Newer clouds like fly/Remix
 Nginx and reverse proxies
 GSoC project setting up
 a python project as backend (auth + curd + mongodb + sql)
+reverse proxy , nginx
+point to a domain to a IP amd use reverse proxy
