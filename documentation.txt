@@ -1,6 +1,7 @@
 ***** NB : pending : have to make the same DB for all the backend services 
 ***** now cloudflare have a neon db with a prisma pool url 
 ***** and all nestjs microservies have localhost postgreds db 
+***** make a AWS S3- CRUD object feature by - nestjs and tool-nextjs . have to intrigate with the frontend 
 
 
 
@@ -84,7 +85,6 @@ SERVERLESS
          deploy link : https://serverless-bend.hirakroya50.workers.dev/
 cloudflare
 
-
 2.AWS - EC2
 -->host b-logic-microservice in the Ec2 insting . 
   create ingtings , select machine type , select os -> select / create a key pare for login by terminal 
@@ -97,6 +97,14 @@ this command "ssh -i <key-pair name>  ubuntu@<ip address>"
 -> config the port form the AWS EC2 setting (settings - > Security group- > Inbound rules)
 -> add Inbound rules with the port no
 
+
+3. make aws lambda function form the aws console
+   make aws lambda function form the serverless fremwork and deploy 
+   make aws lambda function form the hono app-- cant delopy to the lambda . its going to the s3 bucket in a file . by using aws CLI by IAM id and key
+
+
+4. AWS -  S3 , form node js exppress CRUD oparation to the s3 bucket 
+   **->HAVE TO do it  in NEST JS BACKEND (b-logic-microservice)  then have to intrigate in tool-next app
 
 
 ---------------------------------------------------------------------------------------
