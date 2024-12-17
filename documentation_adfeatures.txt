@@ -2,6 +2,10 @@
 * Deploy frontend in AWS
 * Web socket
 * Notification system
+* GraphQL
+* using captcha / tikmark for not a robot --- for ddos attack
+  Cloudflare trunstile sites for captcha 
+queue - rabitMq, amazon sqs , redis 
 
 * Backend backend communication: Pub-Sub, REST/GraphQL, Messaging queue, Server-Sent Events
 * AWS, Cloudflare, AWS CDNS, S3 bucket, AWS EC2, AWS lambra 
@@ -36,3 +40,6 @@ a python project as backend (auth + curd + mongodb + sql)
 reverse proxy , nginx
 point to a domain to a IP amd use reverse proxy
 pm2 list
+
+GraphQL
+tools : vi / vim , vimium, nVim, window managers , dotfiles ,tmux
