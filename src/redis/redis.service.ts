@@ -2,6 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -45,6 +46,41 @@ export class RedisService {
       console.error('Erro for gettign data form redis :', error);
       throw new ConflictException(
         'Error occurred while retrieving data from Redis',
+      );
+    }
+  }
+
+  async pushToRedisQueue({
+    key,
+    data,
+    pushType,
+  }: {
+    key: string;
+    data: string;
+    pushType: 'lpush';
+  }) {
+    try {
+      if (!key || !data) {
+        throw new ConflictException('Key and data must be provided');
+      }
+
+      if (pushType === 'lpush') {
+        await this.redisClient.lpush(key, data);
+      } else {
+        await this.redisClient.rpush(key, data);
+      }
+
+      return {
+        status: 'success',
+        message: `Successfully pushed data to queue: ${key}`,
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        'Failed to push data to Redis queue',
       );
     }
   }
