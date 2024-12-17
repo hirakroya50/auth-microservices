@@ -69,6 +69,7 @@ export class RedisService {
       } else {
         await this.redisClient.rpush(key, data);
       }
+      // CAN MAKE A DB OPRATION HERE
 
       return {
         status: 'success',
