@@ -8,17 +8,17 @@
 queue - rabitMq, amazon sqs , redis 
 
 * Backend backend communication: Pub-Sub, REST/GraphQL, Messaging queue, Server-Sent Events
-* AWS, Cloudflare, AWS CDNS, S3 bucket, AWS EC2, AWS lambra 
-* Pooling in serverless
-Middlewares
+* DONE - AWS, Cloudflare, AWS CDNS, S3 bucket, AWS EC2, AWS lambra 
+* DONE - Pooling in serverless
+DONE PREVIOUSLY - Middlewares
 DONE - Debouncing and throttling
 DONE - Rate limiting
 Access permission if user pays or uses a service as per the package
 Multiple user login (OFF)
 DONE - Get user IP, location in the server, and use that on the service
-Google / GitHub login
-DDOS attack
-Deploy package in npm
+DONE previously -> Google / GitHub login
+DONE - DDOS attack
+DONE - Deploy package in npm
 
 secnd: ---------
 LLM instigation
