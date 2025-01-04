@@ -63,6 +63,8 @@ clear the token form http catch at the time of logout
 9. ip location get in the api request , and the get the location by the api , have to
 test in the production ,
 10. on b-logic-microservice i have make a graphql server
+11. CURD in AWS S3 operation in b-logic-microservice(graphql server) and integrate(graphql) in Next.js and React.js 
+    also download form the s3 by Aws client form the frontend 
 
 
 //TOPIC COVER
