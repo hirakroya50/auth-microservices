@@ -14,10 +14,7 @@ export class RedisController {
   @Post('lpush-pub-sub')
   async dummyOperation(@Body() lpushBody: LpushBodyDto) {
     const data = JSON.stringify(lpushBody);
-    const key = this.configService.get<string>(
-      'REDIS_PUB_SUB_QUEUE_KEY',
-      'sub',
-    );
+    const key = this.configService.get<string>('REDIS_QUEUE_KEY', 'sub');
     const pushType = 'lpush';
     return this.redisService.pushToRedisQueue({ data, key, pushType });
   }
