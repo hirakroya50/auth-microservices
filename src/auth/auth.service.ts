@@ -3,7 +3,6 @@ import {
   ConflictException,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -11,9 +10,7 @@ import {
 } from '@nestjs/common';
 import { GenerateOtpDto } from './dto/genarate-otp.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-
 import { EmailService } from 'src/email/email.service';
-import Redis from 'ioredis';
 import { RedisService } from 'src/redis/redis.service';
 import * as bcrypt from 'bcryptjs';
 import { SignUpDto } from './dto/signup.dto';
@@ -26,7 +23,6 @@ import { SmsService } from 'src/sms/sms.service';
 import { SignInDto } from './dto/signIn.dto';
 import { ConfigService } from '@nestjs/config';
 import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
-
 import * as htmlTemplates from '../utils/html-response.util';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request as ExpressRequest } from 'express';
@@ -55,7 +51,6 @@ export class AuthService {
 
   /**
    * Signup a new user in the system.
-   *
    * This function takes in user sign-up data, checks if the email or username
    * already exists, and creates a new user with a hashed password if both
    * are unique. Returns the created user data excluding the password.

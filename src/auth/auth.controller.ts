@@ -111,7 +111,7 @@ export class AuthController {
     // return { url: `https://url_for_thefrontnd.com` };
   }
 
-  //***************************** SignIN *************************************************************************** */
+  //************************************************************************* SignIN ******************************* */
 
   @Post('/sign-in')
   async signIn(
@@ -123,6 +123,7 @@ export class AuthController {
     let ipAddress = req.ip || req.connection.remoteAddress;
     return this.authService.api_signIn({ signInDto, ipAddress, res });
   }
+  //************************************************************************* accessTokenTest and refreshToken ********* */
 
   @Post('/access-token-test')
   async accessTokenTest(@Req() req: ExpressRequest, @Res() res: Response) {
@@ -134,12 +135,12 @@ export class AuthController {
     return this.authService.api_refreshToken(refreshToken);
   }
 
-  //*****************LOGOUT*************************************************************************************** */
+  //****************************************************************************************LOGOUT**************** */
   @Post('/logout')
   async logout(@Res() res: Response) {
     return this.authService.api_logout(res);
   }
-  //******************************************************************************************************** */
+  //******************************************************************************************GET , Delete user************** */
 
   @Get('/')
   async getUser() {
