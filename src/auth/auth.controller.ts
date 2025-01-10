@@ -148,6 +148,6 @@ export class AuthController {
   }
   @Delete('/')
   async deleteUser() {
-    return await this.authService.api_deleteUser();
+    return await this.authService.api_deleteUser('royhirakp@gmail.com');
   }
 }

@@ -527,11 +527,11 @@ export class AuthService {
   }
 
   //DELETE THE "MY EMAIL" JUST FOR TESTING
-  async api_deleteUser() {
+  async api_deleteUser(email: string) {
     try {
       const deleteUser = await this.prisma.user.delete({
         where: {
-          email: 'royhirakp@gmail.com',
+          email,
         },
       });
       return { deleteUser, message: 'User successfully deleted' };
