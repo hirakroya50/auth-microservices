@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { LpushBodyDto } from './dto/redis-queue-lpush.dto';
 import { ConfigService } from '@nestjs/config';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('redis')
 export class RedisController {
@@ -10,7 +11,7 @@ export class RedisController {
 
     private readonly configService: ConfigService,
   ) {}
-
+  @ApiTags('trigger pubsub')
   @Post('lpush-pub-sub')
   async dummyOperation(@Body() lpushBody: LpushBodyDto) {
     const data = JSON.stringify(lpushBody);
