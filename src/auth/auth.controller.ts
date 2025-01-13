@@ -178,19 +178,32 @@ export class AuthController {
   }
   //************************************************************************* accessTokenTest and refreshToken ********* */
   @ApiTags('token system')
-  @Post('/access-token-test')
+  @ApiOperation({
+    summary: 'Refresh token test',
+    description: 'Tests the refresh token is saved in the cookie or not',
+  })
+  @Post('/refresh-token-test')
   async accessTokenTest(@Req() req: ExpressRequest, @Res() res: Response) {
-    return this.authService.accessTokenTest({ req, res });
+    return this.authService.refreshTokenTest({ req, res });
   }
-
+  //----------------------------------------------------------
   @ApiTags('token system')
-  @Post('/refreshToken')
-  async refreshToken(@Body('refreshToken') refreshToken: string) {
-    return this.authService.api_refreshToken(refreshToken);
+  @ApiOperation({
+    summary: 'Re-generate access token',
+    description: 'Generates a new access token using a valid refresh token.',
+  })
+  @Post('/re-generate-accessToken')
+  async refreshToken(@Req() req: ExpressRequest, @Res() res: Response) {
+    return this.authService.api_refreshToken({ req, res });
   }
 
   //****************************************************************************************LOGOUT**************** */
-  @ApiTags('LOGUOT')
+  @ApiTags('LOGOUT')
+  @ApiOperation({
+    summary: 'Logout user / clear the refresh token form cookie ',
+    description:
+      'Logs out the user by clearing the session or authentication token.',
+  })
   @Post('/logout')
   async logout(@Res() res: Response) {
     return this.authService.api_logout(res);

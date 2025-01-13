@@ -379,7 +379,7 @@ export class AuthService {
         role: user.role,
       });
       //set the http cookie
-      res.cookie('accessToken', accessToken, {
+      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true, //value will be true => process.env.NODE_ENV === 'production',// Ensure it's only sent over HTTPS in production
         sameSite: 'strict', // Protect against CSRF attacks,
@@ -391,6 +391,7 @@ export class AuthService {
         msg: 'Sign-in successful',
         accessToken,
         refreshToken,
+        NB: 'refreshToken is saved in the response cookie, i send it here just for the visualization, save the accessToken in the In memory of the frontend ',
       });
     } catch (error) {
       console.error('Error during sign-in:', error);
@@ -431,7 +432,7 @@ export class AuthService {
   async api_logout(res: Response) {
     try {
       // Clear the access token cookie
-      res.clearCookie('accessToken', {
+      res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: true, //only for dev mode Ensure it's only sent over HTTPS in production
         sameSite: 'strict', // Protect against CSRF attacks
@@ -442,7 +443,7 @@ export class AuthService {
 
       return res.status(HttpStatus.OK).json({
         status: 1,
-        msg: 'Logout successful',
+        msg: 'Logout successful, and refreshToken is clear form the http cookie ',
       });
     } catch (error) {
       console.error('Error during logout:', error);
@@ -453,15 +454,12 @@ export class AuthService {
     }
   }
 
-  async accessTokenTest({ req, res }: { req: ExpressRequest; res: Response }) {
+  async refreshTokenTest({ req, res }: { req: ExpressRequest; res: Response }) {
     try {
-      console.log('refresh cookies ======', req?.cookies);
-
       // Extract refresh token from cookies
-      const accessToken = req?.cookies?.accessToken;
-      console.log('refresh token ======', accessToken);
-
-      if (!accessToken) {
+      const refreshToken = req?.cookies?.refreshToken;
+      console.log({ refreshToken });
+      if (!refreshToken) {
         throw new HttpException(
           'No accessToken  provided',
           HttpStatus.UNAUTHORIZED,
@@ -469,10 +467,10 @@ export class AuthService {
       }
 
       // Return a success response
-      return res.status(HttpStatus.OK).json({ accessToken });
-      return {
-        accessToken,
-      };
+      return res.status(HttpStatus.OK).json({
+        refreshToken,
+        msg: 'refreshToken is received form the cookie',
+      });
     } catch (error) {
       console.error('Error during refresh token:', error.message);
 
@@ -485,32 +483,30 @@ export class AuthService {
   }
 
   //REFRESH TOKEN
-  async api_refreshToken(refreshToken: string) {
+  async api_refreshToken({ req, res }: { req: ExpressRequest; res: Response }) {
     try {
+      const refreshToken = req?.cookies?.refreshToken;
+      if (!refreshToken) {
+        throw new HttpException(
+          'No refreshToken  provided',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      //verify the refresh token -- paining
       const decoded = await this.jwtService.verify(refreshToken, {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
       });
-      //// Check if the token is valid and exists in the database
-      // const storedToken = await this.prisma.refreshToken.findFirst({
-      //   where: { token: refreshToken, userId: decoded.id },
-      // });
 
-      // if (!storedToken) {
-      //   throw new UnauthorizedException('Invalid or expired refresh token');
-      // }
-
-      const tokens = this.generateJwtToken({
+      const { accessToken } = this.generateJwtToken({
         email: decoded?.email,
         id: decoded?.userId,
         role: decoded?.role,
       });
 
-      // Update the refresh token in the database (optional)
-      // await this.prisma.refreshToken.update({
-      //   where: { id: storedToken.id },
-      //   data: { token: tokens.refreshToken },
-      // });
-      return { tokens };
+      return res.status(HttpStatus.OK).json({
+        accessToken,
+      });
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
