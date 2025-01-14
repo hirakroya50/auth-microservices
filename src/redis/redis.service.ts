@@ -22,6 +22,7 @@ export class RedisService {
         );
       }
       const redisRes = await this.redisClient.setex(key, exp_in, data);
+
       return { status: 1, redisRes };
     } catch (error) {
       console.error('Error in key-value Redis:', { key, data, exp_in, error });
@@ -41,7 +42,8 @@ export class RedisService {
       }
 
       // OTP found, now delete it from Redis
-      // await this.redisClient.del(key);
+      await this.redisClient.del(key);
+
       return {
         status: 1,
         message: 'data retrieved and deleted successfully',
@@ -50,7 +52,7 @@ export class RedisService {
     } catch (error) {
       console.error('Error for getting data form redis :', error);
       throw new InternalServerErrorException(
-        'Error occurred while retrieving data from Redis',
+        'Error occurred while retrieving data from Redis:' + error?.message,
       );
     }
   }

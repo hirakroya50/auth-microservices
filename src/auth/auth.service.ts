@@ -74,7 +74,12 @@ export class AuthService {
       });
 
       // Handle potential conflicts with existing users
-      this.checkUserForConflicts_ForSignup(existingUser, email, username);
+      this.checkUserForConflicts_ForSignup(
+        existingUser,
+        email,
+        username,
+        mobile,
+      );
 
       // Hash the password
       const hashedPassword = await this.hashPassword(password);
@@ -137,16 +142,17 @@ export class AuthService {
         data: otp,
       });
 
-      //Send the otp in sms
-      if (mobile_with_country_code) {
-        await this.smsService.sendSms({
-          body: `OTP for the app , your OTP :  ${random_g_otp} . this otp will valid for 15m`,
-          to: mobile_with_country_code,
-        });
-      }
+      // // Send the otp in sms
+      //TWILOW token expire -- free service expire
+      // if (mobile_with_country_code) {
+      //   const mobile = await this.smsService.sendSms({
+      //     body: `OTP for the app , your OTP :  ${random_g_otp} . this otp will valid for 15m`,
+      //     to: mobile_with_country_code,
+      //   });
+      // }
 
       // send the otp in mail (will valid for 15m )
-      await this.emailService.sendEmail({
+      const email_re = await this.emailService.sendEmail({
         to: email,
         html: ` <body style="font-family: system-ui, math, sans-serif">
           <div>
@@ -223,7 +229,7 @@ export class AuthService {
         throw error;
       }
       throw new InternalServerErrorException(
-        'An error occurred during OTP verification',
+        'An error occurred during OTP verification' + error?.message,
       );
     }
   }
@@ -245,10 +251,12 @@ export class AuthService {
 
       // Log the notfound
       if (!existingUser)
-        throw new NotFoundException('Email not added . signup first');
+        throw new NotFoundException('Email not added . sign up first');
+      // if (existingUser.isVerified)
+      //   throw new ConflictException('email already verified ');
 
-      // genarate a random string as Toekn
-      let token = this.generateVerificationToken(); // Outputs a random string of length 10
+      // generate a random string as Toekn
+      let token = this.generateVerificationToken();
 
       // save that in redis for 15m by key name email
       await this.saveTokenInRedis(email, token);
@@ -264,12 +272,14 @@ export class AuthService {
           <p>Email Verification : this url is valid for 15 minutes</p>
           <h1>DEV:</h1>
           <p><a href="${verificationUrl.dev}" style="color: blue; text-decoration: underline;">Click here to verify your email (Development)</a></p>
-          <br/>
-          <p>copy url:${verificationUrl.prod} </p>
+        
+          <p>dev url:${verificationUrl.dev} </p>
 
           <h1>PROD:</h1>
-          <p><a href="${verificationUrl.prod}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>
-        </div>
+          <p><a href="${verificationUrl.prod}" style="color: blue; text-decoration: underline;">Click here to verify your email (Production)</a></p>  
+          <p>prod url:${verificationUrl.prod} </p>
+        
+          </div>
       </body>`,
         subject: 'User Email Verification',
         text: 'Please verify your email address ',
@@ -583,8 +593,13 @@ export class AuthService {
     if (
       error instanceof NotFoundException ||
       error instanceof BadRequestException
-    )
+    ) {
       throw error;
+    } else if (error instanceof ConflictException) {
+      throw error;
+    } else if (error.code === 'P2002') {
+      throw new BadRequestException('A unique constraint violation occurred.');
+    }
 
     throw new InternalServerErrorException({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -599,14 +614,25 @@ export class AuthService {
     existingUser: any,
     email: string,
     username: string,
+    mobile: string,
   ): void {
     if (!existingUser) return;
 
-    if (existingUser.email === email) {
-      throw new ConflictException('Email already in use');
-    }
-    if (existingUser.username === username) {
-      throw new ConflictException('Username already in use');
+    if (
+      existingUser?.email === email ||
+      existingUser?.username === username ||
+      existingUser?.mobile === mobile
+    ) {
+      const field =
+        existingUser.email === email
+          ? 'email'
+          : existingUser.username === username
+            ? 'username'
+            : 'mobile';
+
+      throw new ConflictException(
+        `${field} "${existingUser[field]}" already in use`,
+      );
     }
   }
 

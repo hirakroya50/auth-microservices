@@ -140,7 +140,7 @@ export class AuthController {
     description: 'The email address to send the verification link to.',
     type: EmailSendBodyDto,
   })
-  @Get('/send-email-user-verification')
+  @Post('/send-email-user-verification')
   async sendEmailForUserVerificationByUrl(
     @Body() emailSendBodyDto: EmailSendBodyDto,
   ) {
