@@ -20,27 +20,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
     });
-    // add own strategy to verfy the request
 
     if (!user) {
       throw new Error('User not found');
     }
-    // if (user.id === 1) {
-    //   console.log('user one esce -----');
-    //   throw Error('user one esche333');
-    //   return { user: 'user one esche' };
-    // }
+    // add strategy to verify the request
     if (!user.isVerified) {
       return {
         payload,
-        user,
         isVerifiedUser: false,
       };
     }
 
     return {
       payload,
-      user,
       isVerifiedUser: true,
     };
   }

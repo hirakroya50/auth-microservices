@@ -45,8 +45,13 @@ export class AuthService {
     );
   }
 
-  async jwtTokenVarfytest() {
-    return { message: 'Dummy operation successful', status: 'succesnjjs' };
+  async jwtProtectedRoute(req) {
+    const { payload, isVerifiedUser } = req?.user;
+    return {
+      payload,
+      status: 'Dummy operation successful',
+      message: `user is using a protected route. user: ${isVerifiedUser ? 'VERIFIED' : 'NOT-VERIFIED'}`,
+    };
   }
 
   /**
@@ -355,8 +360,8 @@ export class AuthService {
       // Get location based on IP
       const location = await this.getLocationFromIP(ipAddress);
       console.log(location);
-      //MODIFICATION FOR LOOCATION / IP FEATURE
-      // cant test this feature . this have to test in PROD. and cant get the loction for all machine . have to reserch on that
+      //MODIFICATION FOR LOCATION / IP FEATURE
+      // cant test this feature . this have to test in PROD. and cant get the location for all machine . have to research on that
       //SAVE THE LOGIN ATTEM WITH IP AND LOCATION IN THE DATABASE AND
       //ALSO NOTIFY THE USER WHEN MAKE A LOGIN
       // make this location  ip feature in sycronusly so that that will not effect the main flow of the loin
@@ -390,8 +395,7 @@ export class AuthService {
         status: 1,
         msg: 'Sign-in successful',
         accessToken,
-        refreshToken,
-        NB: 'refreshToken is saved in the response cookie, i send it here just for the visualization, save the accessToken in the In memory of the frontend ',
+        NB: 'refreshToken is saved in the response cookie, save the accessToken in the In memory of the frontend ',
       });
     } catch (error) {
       console.error('Error during sign-in:', error);
@@ -407,27 +411,6 @@ export class AuthService {
     }
   }
 
-  //get the location by ip address
-  private async getLocationFromIP(ip: string): Promise<any> {
-    const apiKey = this.configService.get<string>('IPSTACK_API_AccessKey');
-    // for localhost / dev modee
-    if (ip === '127.0.0.1' || ip === '::1') {
-      return { city: 'Localhost', country: 'Local', region: 'Local' };
-    }
-
-    try {
-      // 134.201.250.155
-      const response = await axios.get(
-        `https://api.ipstack.com/${ip}?access_key=${apiKey}&format=1`,
-      );
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching location:', error);
-      return null;
-    }
-  }
-
   //LOGOUT
   async api_logout(res: Response) {
     try {
@@ -437,9 +420,6 @@ export class AuthService {
         secure: true, //only for dev mode Ensure it's only sent over HTTPS in production
         sameSite: 'strict', // Protect against CSRF attacks
       });
-
-      // If needed, add logic to invalidate tokens (e.g., remove refresh tokens from DB/Redis)
-      // For example: await this.invalidateToken(userId);
 
       return res.status(HttpStatus.OK).json({
         status: 1,
@@ -457,14 +437,8 @@ export class AuthService {
   async refreshTokenTest({ req, res }: { req: ExpressRequest; res: Response }) {
     try {
       // Extract refresh token from cookies
-      const refreshToken = req?.cookies?.refreshToken;
+      const refreshToken = this.checkCookieWithPresentRefreshToken(req);
       console.log({ refreshToken });
-      if (!refreshToken) {
-        throw new HttpException(
-          'No accessToken  provided',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
 
       // Return a success response
       return res.status(HttpStatus.OK).json({
@@ -483,15 +457,15 @@ export class AuthService {
   }
 
   //REFRESH TOKEN
-  async api_refreshToken({ req, res }: { req: ExpressRequest; res: Response }) {
+  async reGenerateAccessToken({
+    req,
+    res,
+  }: {
+    req: ExpressRequest;
+    res: Response;
+  }) {
     try {
-      const refreshToken = req?.cookies?.refreshToken;
-      if (!refreshToken) {
-        throw new HttpException(
-          'No refreshToken  provided',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
+      const refreshToken = this.checkCookieWithPresentRefreshToken(req);
 
       //verify the refresh token -- paining
       const decoded = await this.jwtService.verify(refreshToken, {
@@ -508,7 +482,9 @@ export class AuthService {
         accessToken,
       });
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException(
+        'Invalid or expired refresh token or login again',
+      );
     }
   }
 
@@ -540,6 +516,11 @@ export class AuthService {
     }
   }
 
+  /******************************************************************************* non route functions **/
+  /******************************************************************************* non route functions **/
+  /******************************************************************************* non route functions **/
+  /******************************************************************************* non route functions **/
+
   //Function for --------------signIn---------
   private async validatePassword(
     inputPassword: string,
@@ -547,6 +528,7 @@ export class AuthService {
   ): Promise<boolean> {
     return bcrypt.compare(inputPassword, storedPassword);
   }
+
   private generateJwtToken(data: {
     id: string | number;
     email: string;
@@ -644,4 +626,37 @@ export class AuthService {
     }
   }
   // functions for sign up ---------end --------
+
+  checkCookieWithPresentRefreshToken(req: ExpressRequest) {
+    const refreshToken = req?.cookies?.refreshToken;
+    console.log({ refreshToken });
+    if (!refreshToken) {
+      throw new HttpException(
+        'No accessToken  provided',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    return refreshToken;
+  }
+
+  //get the location by ip address
+  private async getLocationFromIP(ip: string): Promise<any> {
+    const apiKey = this.configService.get<string>('IPSTACK_API_AccessKey');
+    // for localhost / dev modee
+    if (ip === '127.0.0.1' || ip === '::1') {
+      return { city: 'Localhost', country: 'Local', region: 'Local' };
+    }
+
+    try {
+      // 134.201.250.155
+      const response = await axios.get(
+        `https://api.ipstack.com/${ip}?access_key=${apiKey}&format=1`,
+      );
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching location:', error);
+      return null;
+    }
+  }
 }

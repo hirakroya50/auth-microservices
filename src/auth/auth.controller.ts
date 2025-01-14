@@ -39,6 +39,10 @@ import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { VerifyUserEmailDtoByLink } from './dto/verify-user-email-byLink.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Roles } from './decorators/roles.decorator';
+
+interface CustomRequest extends ExpressRequest {
+  user?: any; // Adjust the type based on your `user` object structure
+}
 @ApiBearerAuth()
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
@@ -61,13 +65,19 @@ export class AuthController {
     return { message: 'admin data' };
   }
   // --------------------------------------------------------------
-  @ApiTags('protected service')
-  @Get('jwt-protected-route')
+  @ApiTags('signin with -token system logout')
+  @Get('protected-route')
+  @ApiOperation({
+    summary: 'JWT protected route by accessToken',
+    description:
+      'Access this route only with a valid JWT. Returns a success message after verifying the token. add the accessToken in the Authorization header with "Bearer" in the first',
+  })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard) // Protect the endpoint
-  async dummyOperation(@Request() req) {
+  async jwtTokenVerifyTest(@Request() req: ExpressRequest) {
     // Perform a dummy operation (e.g., return a success message)
-    console.log(req.user);
-    return this.authService.jwtTokenVarfytest();
+    // console.log({ req });
+    return this.authService.jwtProtectedRoute(req);
   }
   // 1
   //***************************** SingUP ********************************************************************* */
@@ -157,7 +167,7 @@ export class AuthController {
   }
 
   //************************************************************************* SignIN ******************************* */
-  @ApiTags(' user Signin')
+  @ApiTags('signin with -token system logout')
   @ApiOperation({ summary: 'Sign in a user using email, username, or mobile' })
   @ApiBody({
     type: SignInDto,
@@ -177,28 +187,31 @@ export class AuthController {
     return this.authService.api_signIn({ signInDto, ipAddress, res });
   }
   //************************************************************************* accessTokenTest and refreshToken ********* */
-  @ApiTags('token system')
+  @ApiTags('signin with - token system logout')
   @ApiOperation({
     summary: 'Refresh token test',
     description: 'Tests the refresh token is saved in the cookie or not',
   })
   @Post('/refresh-token-test')
-  async accessTokenTest(@Req() req: ExpressRequest, @Res() res: Response) {
+  async refreshTokenTest(@Req() req: ExpressRequest, @Res() res: Response) {
     return this.authService.refreshTokenTest({ req, res });
   }
-  //----------------------------------------------------------
-  @ApiTags('token system')
+  //--------------------------------------------------------------------------------------------------------------------
+  @ApiTags('signin with -token system logout')
   @ApiOperation({
     summary: 'Re-generate access token',
     description: 'Generates a new access token using a valid refresh token.',
   })
-  @Post('/re-generate-accessToken')
-  async refreshToken(@Req() req: ExpressRequest, @Res() res: Response) {
-    return this.authService.api_refreshToken({ req, res });
+  @Post('/regenerate-accessToken')
+  async reGenerateAccessToken(
+    @Req() req: ExpressRequest,
+    @Res() res: Response,
+  ) {
+    return this.authService.reGenerateAccessToken({ req, res });
   }
 
   //****************************************************************************************LOGOUT**************** */
-  @ApiTags('LOGOUT')
+  @ApiTags('signin with -token system logout')
   @ApiOperation({
     summary: 'Logout user / clear the refresh token form cookie ',
     description:

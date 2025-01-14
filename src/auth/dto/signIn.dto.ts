@@ -10,7 +10,7 @@ import {
 
 export class SignInDto {
   @ApiPropertyOptional({
-    example: 'user@example.com',
+    example: 'hirakroya50@gmail.com',
     description:
       'User email address (required if username or mobile is not provided)',
   })
@@ -36,7 +36,7 @@ export class SignInDto {
   mobile: string;
 
   @ApiProperty({
-    example: 'StrongPassword123',
+    example: 'hirakroya50@gmail.com',
     description: 'Password for the user account',
   })
   @IsString({ message: 'Password must be a string' })
