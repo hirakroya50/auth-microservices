@@ -45,7 +45,7 @@ interface CustomRequest extends ExpressRequest {
 }
 @ApiBearerAuth()
 @Controller('auth')
-@UseGuards(ThrottlerGuard)
+// @UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
   // t'odo
@@ -54,15 +54,25 @@ export class AuthController {
   @ApiTags('role based access')
   @Get('/user')
   @Roles('USER')
+  @UseGuards(JwtAuthGuard)
   getUserData() {
-    return { message: 'USER data' };
+    return { message: 'USER only data' };
   }
 
   @ApiTags('role based access')
   @Get('/admin')
   @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard)
   getAdminData() {
-    return { message: 'admin data' };
+    return { message: 'admin access only data' };
+  }
+
+  @ApiTags('role based access')
+  @Get('/manager')
+  @Roles('MANAGER')
+  @UseGuards(JwtAuthGuard)
+  getManagerData() {
+    return { message: 'MANAGER access only data' };
   }
   // --------------------------------------------------------------
   @ApiTags('signin with -token system logout')
@@ -187,7 +197,7 @@ export class AuthController {
     return this.authService.api_signIn({ signInDto, ipAddress, res });
   }
   //************************************************************************* accessTokenTest and refreshToken ********* */
-  @ApiTags('signin with - token system logout')
+  @ApiTags('signin with -token system logout')
   @ApiOperation({
     summary: 'Refresh token test',
     description: 'Tests the refresh token is saved in the cookie or not',
