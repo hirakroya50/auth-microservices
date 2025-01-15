@@ -25,17 +25,12 @@ export class RolesGuard implements CanActivate {
     const token =
       request.headers?.authorization?.split(' ')[1] ||
       request?.cookies?.accessToken;
-    console.log({
-      token,
-    });
+
     if (!token) return false;
-    console.log(this.jwtService?.decode(token));
 
     const user = this.jwtService.decode(token) as {
       role: 'ADMIN' | 'USER' | 'MANAGER';
     };
-
-    console.log({ user });
 
     return requiredRoles.includes(user.role);
   }

@@ -86,7 +86,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard) // Protect the endpoint
   async jwtTokenVerifyTest(@Request() req: ExpressRequest) {
     // Perform a dummy operation (e.g., return a success message)
-    // console.log({ req });
     return this.authService.jwtProtectedRoute(req);
   }
   // 1

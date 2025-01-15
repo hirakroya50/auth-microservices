@@ -448,7 +448,6 @@ export class AuthService {
     try {
       // Extract refresh token from cookies
       const refreshToken = this.checkCookieWithPresentRefreshToken(req);
-      console.log({ refreshToken });
 
       // Return a success response
       return res.status(HttpStatus.OK).json({
@@ -655,7 +654,6 @@ export class AuthService {
 
   checkCookieWithPresentRefreshToken(req: ExpressRequest) {
     const refreshToken = req?.cookies?.refreshToken;
-    console.log({ refreshToken });
     if (!refreshToken) {
       throw new HttpException(
         'No accessToken  provided',
@@ -678,7 +676,6 @@ export class AuthService {
       const response = await axios.get(
         `https://api.ipstack.com/${ip}?access_key=${apiKey}&format=1`,
       );
-      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching location:', error);
